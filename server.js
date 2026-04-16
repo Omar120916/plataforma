@@ -6,7 +6,7 @@ app.use(express.json())
 app.use(express.static('public'))
 
 // 🔥 CONEXIÓN A MONGODB (AQUÍ PEGA TU LINK)
-mongoose.connect('mongodb+srv://carlossanchez1359_db_user:a0L5NtKO6Aw2QQds@cluster0.uztomh4.mongodb.net/escuela')
+mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuela')
     .then(() => console.log('Conectado a MongoDB'))
     .catch(err => console.log(err))
 
