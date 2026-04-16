@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alumnos</title>
+</head>
+<body>
+
+<h2>Registrar Alumno</h2>
+
+<input id="nombre" placeholder="Nombre">
+<input id="edad" placeholder="Edad">
+<button onclick="guardar()">Guardar</button>
+
+<h2>Lista de alumnos</h2>
+<ul id="lista"></ul>
+
+<script>
+async function guardar() {
+    await fetch('/alumnos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            nombre: document.getElementById('nombre').value,
+            edad: document.getElementById('edad').value
+        })
+    })
+
+    cargar()
+}
+
+async function cargar() {
+    const res = await fetch('/alumnos')
+    const data = await res.json()
+
+    const lista = document.getElementById('lista')
+    lista.innerHTML = ''
+
+    data.forEach(alumno => {
+        const li = document.createElement('li')
+        li.textContent = alumno.nombre + ' - ' + alumno.edad
+        lista.appendChild(li)
+    })
+}
+
+cargar()
+</script>
+
+</body>
+</html>
