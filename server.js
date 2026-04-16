@@ -1,10 +1,20 @@
 const express = require('express')
+const mongoose = require('mongoose')
 const app = express()
 
 app.use(express.json())
 app.use(express.static('public'))
 
-let alumnos = []
+// 🔥 CONEXIÓN A MONGODB (AQUÍ PEGA TU LINK)
+mongoose.connect('mongodb+srv://carlossanchez1359_db_user:a0L5NtKO6Aw2QQds@cluster0.uztomh4.mongodb.net/escuela')
+    .then(() => console.log('Conectado a MongoDB'))
+    .catch(err => console.log(err))
+
+// 🔥 MODELO
+const Alumno = mongoose.model('Alumno', {
+    nombre: String,
+    edad: String
+})
 
 // LOGIN (simple)
 app.post('/login', (req, res) => {
@@ -17,14 +27,16 @@ app.post('/login', (req, res) => {
     }
 })
 
-// REGISTRAR ALUMNO
-app.post('/alumnos', (req, res) => {
-    alumnos.push(req.body)
+// REGISTRAR ALUMNO (GUARDA EN MONGO)
+app.post('/alumnos', async (req, res) => {
+    const nuevo = new Alumno(req.body)
+    await nuevo.save()
     res.json({ mensaje: 'Alumno guardado' })
 })
 
-// OBTENER ALUMNOS
-app.get('/alumnos', (req, res) => {
+// OBTENER ALUMNOS (DESDE MONGO)
+app.get('/alumnos', async (req, res) => {
+    const alumnos = await Alumno.find()
     res.json(alumnos)
 })
 
