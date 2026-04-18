@@ -16,7 +16,7 @@ const token = localStorage.getItem('token')
 const payload = JSON.parse(atob(token.split('.')[1]))
 
 document.getElementById('info').innerHTML = `
-    <p>Bienvenido ${payload.usuario}</p>
+    <p>Bienvenid@ ${payload.usuario}</p>
 `
 </script>
 
