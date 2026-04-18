@@ -22,10 +22,13 @@ async function login() {
         })
     })
 
+    const data = await res.json()
+
     if (res.ok) {
+        localStorage.setItem('token', data.token)
         window.location.href = 'alumnos.html'
     } else {
-        alert('Error en login')
+        alert(data.mensaje)
     }
 }
 </script>

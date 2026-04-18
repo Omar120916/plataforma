@@ -15,10 +15,23 @@
 <ul id="lista"></ul>
 
 <script>
+
+// 🔐 revisar si hay token
+const token = localStorage.getItem('token')
+
+if (!token) {
+    alert('No autorizado')
+    window.location.href = 'index.html'
+}
+
+// GUARDAR
 async function guardar() {
     await fetch('/alumnos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+        },
         body: JSON.stringify({
             nombre: document.getElementById('nombre').value,
             edad: document.getElementById('edad').value
@@ -28,8 +41,14 @@ async function guardar() {
     cargar()
 }
 
+// CARGAR
 async function cargar() {
-    const res = await fetch('/alumnos')
+    const res = await fetch('/alumnos', {
+        headers: {
+            'Authorization': token
+        }
+    })
+
     const data = await res.json()
 
     const lista = document.getElementById('lista')
@@ -43,7 +62,7 @@ async function cargar() {
 }
 
 cargar()
-</script>
 
+</script>
 </body>
 </html>
