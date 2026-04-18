@@ -35,9 +35,28 @@
     </div>
 
     <div class="card p-3 shadow-sm mb-4">
+    <h5>Crear usuario (solo admin)</h5>
+
+    <input class="form-control mb-2" id="nuevoUsuario" placeholder="Usuario">
+    <input class="form-control mb-2" id="nuevoPassword" type="password" placeholder="Contraseña">
+
+    <select class="form-select mb-2" id="rol">
+        <option value="maestro">Maestro</option>
+        <option value="alumno">Alumno</option>
+        <option value="padre">Padre</option>
+    </select>
+
+    <input class="form-control mb-2" id="alumnoId" placeholder="ID alumno (solo para padre)">
+
+    <button class="btn btn-success w-100" onclick="crearUsuario()">Crear usuario</button>
+</div>
+
+    <div class="card p-3 shadow-sm mb-4">
     <h5>Alumnos por edad</h5>
     <canvas id="grafica"></canvas>
 </div>
+
+
 
     <!-- LISTA -->
     <div class="card p-3 shadow-sm">
@@ -110,6 +129,30 @@ async function cargar() {
 }
 
 cargar()
+
+async function crearUsuario() {
+    const usuario = document.getElementById('nuevoUsuario').value
+    const password = document.getElementById('nuevoPassword').value
+    const rol = document.getElementById('rol').value
+    const alumnoId = document.getElementById('alumnoId').value
+
+    const res = await fetch('/registro', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+        },
+        body: JSON.stringify({
+            usuario,
+            password,
+            rol,
+            alumnoId
+        })
+    })
+
+    const data = await res.json()
+    alert(data.mensaje || data.error)
+}
 </script>
 
 </body>
