@@ -42,7 +42,7 @@ async function login() {
 
     if (res.ok) {
         localStorage.setItem('token', data.token)
-        window.location.href = 'alumnos.html'
+        window.location.href = 'dashboard.html'
     } else {
         alert(data.mensaje)
     }
