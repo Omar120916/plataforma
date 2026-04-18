@@ -2,21 +2,32 @@
 <html>
 <head>
     <title>Alumnos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
 
-<h2>Registrar Alumno</h2>
+<body class="container mt-5">
 
-<input id="nombre" placeholder="Nombre">
-<input id="edad" placeholder="Edad">
-<button onclick="guardar()">Guardar</button>
+<div class="d-flex justify-content-between mb-4">
+    <h2>Panel de alumnos</h2>
+    <button class="btn btn-danger" onclick="logout()">Cerrar sesión</button>
+</div>
 
-<h2>Lista de alumnos</h2>
-<ul id="lista"></ul>
+<div class="card p-3 mb-4 shadow">
+    <h5>Registrar alumno</h5>
+
+    <input class="form-control mb-2" id="nombre" placeholder="Nombre">
+    <input class="form-control mb-2" id="edad" placeholder="Edad">
+
+    <button class="btn btn-primary" onclick="guardar()">Guardar</button>
+</div>
+
+<div class="card p-3 shadow">
+    <h5>Lista de alumnos</h5>
+    <ul class="list-group" id="lista"></ul>
+</div>
 
 <script>
 
-// 🔐 revisar si hay token
 const token = localStorage.getItem('token')
 
 if (!token) {
@@ -24,29 +35,35 @@ if (!token) {
     window.location.href = 'index.html'
 }
 
-// GUARDAR
+function logout() {
+    localStorage.removeItem('token')
+    window.location.href = 'index.html'
+}
+
 async function guardar() {
+    const nombre = document.getElementById('nombre').value
+    const edad = document.getElementById('edad').value
+
+    if (!nombre || !edad) {
+        alert('Completa todos los campos')
+        return
+    }
+
     await fetch('/alumnos', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': token
         },
-        body: JSON.stringify({
-            nombre: document.getElementById('nombre').value,
-            edad: document.getElementById('edad').value
-        })
+        body: JSON.stringify({ nombre, edad })
     })
 
     cargar()
 }
 
-// CARGAR
 async function cargar() {
     const res = await fetch('/alumnos', {
-        headers: {
-            'Authorization': token
-        }
+        headers: { 'Authorization': token }
     })
 
     const data = await res.json()
@@ -56,6 +73,7 @@ async function cargar() {
 
     data.forEach(alumno => {
         const li = document.createElement('li')
+        li.className = 'list-group-item'
         li.textContent = alumno.nombre + ' - ' + alumno.edad
         lista.appendChild(li)
     })
@@ -64,5 +82,6 @@ async function cargar() {
 cargar()
 
 </script>
+
 </body>
 </html>
