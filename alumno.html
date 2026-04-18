@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alumno</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="container mt-4">
+
+<h3>👨‍🎓 Panel del Alumno</h3>
+
+<div id="info"></div>
+
+<script>
+const token = localStorage.getItem('token')
+const payload = JSON.parse(atob(token.split('.')[1]))
+
+document.getElementById('info').innerHTML = `
+    <p>Bienvenido ${payload.usuario}</p>
+`
+</script>
+
+</body>
+</html>

@@ -20,6 +20,7 @@
 
                 <button class="btn btn-primary w-100 mb-2" onclick="login()">Entrar</button>
 
+                
             </div>
 
         </div>
@@ -40,8 +41,14 @@ async function login() {
     const data = await res.json()
 
     if (res.ok) {
-        localStorage.setItem('token', data.token)
-        window.location.href = 'dashboard.html'
+        const payload = JSON.parse(atob(data.token.split('.')[1]))
+
+localStorage.setItem('token', data.token)
+
+if (payload.rol === 'admin') window.location.href = 'dashboard.html'
+if (payload.rol === 'maestro') window.location.href = 'maestro.html'
+if (payload.rol === 'alumno') window.location.href = 'alumno.html'
+if (payload.rol === 'padre') window.location.href = 'padre.html'
     } else {
         alert(data.mensaje)
     }
