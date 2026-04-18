@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Dashboard Admin</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-}
+body { margin: 0; }
 
 /* SIDEBAR */
 .sidebar {
@@ -25,7 +22,6 @@ body {
 
 .sidebar h4 {
     text-align: center;
-    margin-bottom: 20px;
 }
 
 .sidebar button {
@@ -33,7 +29,7 @@ body {
     border: none;
     background: none;
     color: white;
-    padding: 10px;
+    padding: 12px;
     text-align: left;
 }
 
@@ -41,16 +37,25 @@ body {
     background: rgba(255,255,255,0.2);
 }
 
-/* CONTENIDO */
+/* MAIN */
 .main {
     margin-left: 220px;
-    padding: 20px;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* CARD */
 .card-form {
-    max-width: 500px;
-    margin: auto;
+    background: rgba(255,255,255,0.95);
+    padding: 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 420px;
 }
 
 /* RESPONSIVE */
@@ -63,6 +68,7 @@ body {
 
     .main {
         margin-left: 0;
+        padding: 20px;
     }
 }
 </style>
@@ -72,77 +78,76 @@ body {
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <h4>Admin</h4>
-
+    <h4>🎓 Admin</h4>
     <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
     <button onclick="mostrar('padre')">👨‍👦 Papás</button>
 </div>
 
-<!-- CONTENIDO -->
+<!-- MAIN -->
 <div class="main">
-
-    <h3 id="titulo">Bienvenido Admin</h3>
-
-    <div id="contenido"></div>
-
+    <div id="contenido" class="card-form shadow"></div>
 </div>
 
 <script>
 const token = localStorage.getItem('token')
 
-// 🔥 CAMBIAR VISTA
-function mostrar(tipo) {
+// 🧩 FORMULARIOS
+function formMaestro() {
+    return `
+        <h4 class="text-center mb-3">Registrar Maestro</h4>
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre completo">
+        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
+        <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
+    `
+}
 
+function formAlumno() {
+    return `
+        <h4 class="text-center mb-3">Registrar Alumno</h4>
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+        <input id="grado" class="form-control mb-2" placeholder="Grado">
+
+        <select id="maestro" class="form-select mb-3">
+            <option value="">Seleccionar maestro</option>
+        </select>
+
+        <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
+    `
+}
+
+function formPadre() {
+    return `
+        <h4 class="text-center mb-3">Registrar Papá</h4>
+        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+        <input id="password" type="password" class="form-control mb-2" placeholder="Contraseña">
+
+        <select id="alumnoId" class="form-select mb-3"></select>
+
+        <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
+    `
+}
+
+// 🔄 CAMBIAR SECCIÓN
+function mostrar(tipo) {
     const cont = document.getElementById('contenido')
+    const main = document.querySelector('.main')
 
     if (tipo === 'maestro') {
-        document.getElementById('titulo').innerText = 'Registrar Maestro'
-
-        cont.innerHTML = `
-            <div class="card card-form p-4 shadow">
-                <input id="nombre" class="form-control mb-2" placeholder="Nombre">
-                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-                <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
-
-                <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
-            </div>
-        `
+        main.style.backgroundImage = "url('/img/fondo1.jpeg')"
+        cont.innerHTML = formMaestro()
     }
 
     if (tipo === 'alumno') {
-        document.getElementById('titulo').innerText = 'Registrar Alumno'
-
-        cont.innerHTML = `
-            <div class="card card-form p-4 shadow">
-                <input id="nombre" class="form-control mb-2" placeholder="Nombre">
-                <input id="grado" class="form-control mb-2" placeholder="Grado">
-
-                <select id="maestro" class="form-select mb-3">
-                    <option>Seleccionar maestro</option>
-                </select>
-
-                <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
-            </div>
-        `
-
+        main.style.backgroundImage = "url('/img/fondo3.jpeg')"
+        cont.innerHTML = formAlumno()
         cargarMaestros()
     }
 
     if (tipo === 'padre') {
-        document.getElementById('titulo').innerText = 'Registrar Papá'
-
-        cont.innerHTML = `
-            <div class="card card-form p-4 shadow">
-                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-                <input id="password" type="password" class="form-control mb-2" placeholder="Contraseña">
-
-                <select id="alumnoId" class="form-select mb-3"></select>
-
-                <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
-            </div>
-        `
-
+        main.style.backgroundImage = "url('/img/fondo2.jpeg')"
+        cont.innerHTML = formPadre()
         cargarAlumnos()
     }
 }
@@ -194,7 +199,7 @@ async function cargarMaestros() {
     const data = await res.json()
 
     const select = document.getElementById('maestro')
-    select.innerHTML = '<option>Seleccionar maestro</option>'
+    select.innerHTML = '<option value="">Seleccionar maestro</option>'
 
     data
         .filter(u => u.rol === 'maestro')
@@ -219,8 +224,9 @@ async function cargarAlumnos() {
     })
 }
 
-// INICIO
+// 🚀 INICIO
 mostrar('maestro')
+
 </script>
 
 </body>
