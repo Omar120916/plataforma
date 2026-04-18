@@ -1,157 +1,142 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Dashboard Admin</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    background: #f5f6fa;
+}
+
+.sidebar {
+    height: 100vh;
+    background: linear-gradient(180deg, #2b6cb0, #1e40af);
+    color: white;
+    padding: 20px;
+}
+
+.sidebar button {
+    width: 100%;
+    margin-bottom: 10px;
+    border: none;
+    background: transparent;
+    color: white;
+    text-align: left;
+    padding: 10px;
+}
+
+.sidebar button:hover {
+    background: rgba(255,255,255,0.2);
+    border-radius: 8px;
+}
+
+.card {
+    border-radius: 12px;
+}
+</style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container py-3">
+<div class="container-fluid">
+<div class="row">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Dashboard</h3>
-        <button class="btn btn-danger" onclick="logout()">Cerrar sesión</button>
-    </div>
+<!-- SIDEBAR -->
+<div class="col-md-3 col-lg-2 sidebar">
+    <h4>📚 Admin</h4>
+    <hr>
 
-    <!-- CARDS -->
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-6">
-            <div class="card p-3 shadow-sm text-center">
-                <h5>Total de alumnos</h5>
-                <h2 id="total">0</h2>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-6">
-            <div class="card p-3 shadow-sm text-center">
-                <h5>Acciones</h5>
-                <a href="alumnos.html" class="btn btn-primary mt-2">Ir a alumnos</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="card p-3 shadow-sm mb-4">
-    <h5>Crear usuario (solo admin)</h5>
-
-    <input class="form-control mb-2" id="nuevoUsuario" placeholder="Usuario">
-    <input class="form-control mb-2" id="nuevoPassword" type="password" placeholder="Contraseña">
-
-    <select class="form-select mb-2" id="rol">
-        <option value="maestro">Maestro</option>
-        <option value="alumno">Alumno</option>
-        <option value="padre">Padre</option>
-    </select>
-
-    <input class="form-control mb-2" id="alumnoId" placeholder="ID alumno (solo para padre)">
-
-    <button class="btn btn-success w-100" onclick="crearUsuario()">Crear usuario</button>
+    <button onclick="mostrar('maestros')">👨‍🏫 Agregar maestros</button>
+    <button onclick="mostrar('alumnos')">👨‍🎓 Agregar alumnos</button>
+    <button onclick="mostrar('padres')">👨‍👩‍👧 Agregar papás</button>
 </div>
 
-    <div class="card p-3 shadow-sm mb-4">
-    <h5>Alumnos por edad</h5>
-    <canvas id="grafica"></canvas>
+<!-- CONTENIDO -->
+<div class="col-md-9 col-lg-10 p-4">
+
+    <div id="contenido"></div>
+
 </div>
 
-
-
-    <!-- LISTA -->
-    <div class="card p-3 shadow-sm">
-        <h5>Últimos alumnos</h5>
-        <ul class="list-group" id="lista"></ul>
-    </div>
-
+</div>
 </div>
 
 <script>
 const token = localStorage.getItem('token')
 
-if (!token) {
-    alert('No autorizado')
-    window.location.href = 'index.html'
-}
+function mostrar(seccion) {
 
-function logout() {
-    localStorage.removeItem('token')
-    window.location.href = 'index.html'
-}
-
-async function cargar() {
-    const res = await fetch('/alumnos', {
-        headers: { 'Authorization': token }
-    })
-
-    const data = await res.json()
-
-    // TOTAL
-    document.getElementById('total').textContent = data.length
-
-    // LISTA
-    const lista = document.getElementById('lista')
-    lista.innerHTML = ''
-
-    data.slice(-5).reverse().forEach(alumno => {
-        const li = document.createElement('li')
-        li.className = 'list-group-item d-flex justify-content-between'
-        li.innerHTML = `
-            <span>${alumno.nombre}</span>
-            <span class="text-muted">${alumno.edad}</span>
+    if (seccion === 'maestros') {
+        document.getElementById('contenido').innerHTML = `
+            <div class="card p-4 shadow">
+                <h5>Agregar Maestro</h5>
+                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+                <input id="password" class="form-control mb-2" type="password" placeholder="Contraseña">
+                <button class="btn btn-primary" onclick="crear('maestro')">Guardar</button>
+            </div>
         `
-        lista.appendChild(li)
-    })
+    }
 
-    // 🔥 AGRUPAR POR EDAD
-    const edades = {}
+    if (seccion === 'alumnos') {
+        document.getElementById('contenido').innerHTML = `
+            <div class="card p-4 shadow">
+                <h5>Agregar Alumno</h5>
+                <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+                <input id="edad" class="form-control mb-2" placeholder="Edad">
+                <button class="btn btn-success" onclick="crearAlumno()">Guardar</button>
+            </div>
+        `
+    }
 
-    data.forEach(alumno => {
-        const edad = alumno.edad
-        edades[edad] = (edades[edad] || 0) + 1
-    })
-
-    // DATOS PARA GRÁFICA
-    const labels = Object.keys(edades)
-    const valores = Object.values(edades)
-
-    // CREAR GRÁFICA
-    new Chart(document.getElementById('grafica'), {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Cantidad de alumnos',
-                data: valores
-            }]
-        }
-    })
+    if (seccion === 'padres') {
+        document.getElementById('contenido').innerHTML = `
+            <div class="card p-4 shadow">
+                <h5>Agregar Papá</h5>
+                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+                <input id="password" class="form-control mb-2" type="password" placeholder="Contraseña">
+                <input id="alumnoId" class="form-control mb-2" placeholder="ID del alumno">
+                <button class="btn btn-warning" onclick="crear('padre')">Guardar</button>
+            </div>
+        `
+    }
 }
 
-cargar()
+// CREAR USUARIO
+async function crear(rol) {
+    const usuario = document.getElementById('usuario').value
+    const password = document.getElementById('password').value
+    const alumnoId = document.getElementById('alumnoId')?.value
 
-async function crearUsuario() {
-    const usuario = document.getElementById('nuevoUsuario').value
-    const password = document.getElementById('nuevoPassword').value
-    const rol = document.getElementById('rol').value
-    const alumnoId = document.getElementById('alumnoId').value
-
-    const res = await fetch('/registro', {
+    await fetch('/registro', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'Authorization': token
         },
-        body: JSON.stringify({
-            usuario,
-            password,
-            rol,
-            alumnoId
-        })
+        body: JSON.stringify({ usuario, password, rol, alumnoId })
     })
 
-    const data = await res.json()
-    alert(data.mensaje || data.error)
+    alert('Usuario creado')
+}
+
+// CREAR ALUMNO
+async function crearAlumno() {
+    const nombre = document.getElementById('nombre').value
+    const edad = document.getElementById('edad').value
+
+    await fetch('/alumnos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+        },
+        body: JSON.stringify({ nombre, edad })
+    })
+
+    alert('Alumno creado')
 }
 </script>
 
