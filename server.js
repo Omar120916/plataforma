@@ -17,31 +17,32 @@ mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuel
 const Usuario = mongoose.model('Usuario', {
     usuario: String,
     password: String,
-    rol: String
-})
-
-const Usuario = mongoose.model('Usuario', {
-    usuario: String,
-    password: String,
     rol: String, // admin, maestro, alumno, padre
     alumnoId: String // para vincular papá o alumno
 })
 
+const Alumno = mongoose.model('Alumno', {
+    nombre: String,
+    edad: String,
+    tutor: String // nombre del papá (opcional)
+})
+
 // 🔐 REGISTRO DE USUARIO
-app.post('/registro', async (req, res) => {
-    const { usuario, password, rol } = req.body
+app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
+    const { usuario, password, rol, alumnoId } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
     const nuevo = new Usuario({
         usuario,
         password: hash,
-        rol: rol || 'maestro'
+        rol,
+        alumnoId
     })
 
     await nuevo.save()
 
-    res.json({ mensaje: 'Usuario creado' })
+    res.json({ mensaje: 'Usuario creado por admin' })
 })
 
 // 🔐 LOGIN REAL
@@ -60,8 +61,7 @@ app.post('/login', async (req, res) => {
         return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
     }
 
-    const token = jwt.sign({ usuario: user.usuario, rol: user.rol }, 'secreto123')
-
+    const token = jwt.sign({usuario: user.usuario, rol: user.rol,alumnoId: user.alumnoId}, 'secreto123')
     res.json({ token })
 })
 
@@ -78,6 +78,13 @@ function verificarToken(req, res, next) {
     } catch {
         res.status(401).json({ mensaje: 'Token inválido' })
     }
+}
+
+function soloAdmin(req, res, next) {
+    if (req.usuario.rol !== 'admin') {
+        return res.status(403).json({ mensaje: 'Solo admin puede hacer esto' })
+    }
+    next()
 }
 
 // 👨‍🎓 RUTAS PROTEGIDAS
