@@ -4,6 +4,7 @@
     <title>Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-light">
@@ -33,6 +34,11 @@
         </div>
     </div>
 
+    <div class="card p-3 shadow-sm mb-4">
+    <h5>Alumnos por edad</h5>
+    <canvas id="grafica"></canvas>
+</div>
+
     <!-- LISTA -->
     <div class="card p-3 shadow-sm">
         <h5>Últimos alumnos</h5>
@@ -61,10 +67,10 @@ async function cargar() {
 
     const data = await res.json()
 
-    // total
+    // TOTAL
     document.getElementById('total').textContent = data.length
 
-    // lista
+    // LISTA
     const lista = document.getElementById('lista')
     lista.innerHTML = ''
 
@@ -76,6 +82,30 @@ async function cargar() {
             <span class="text-muted">${alumno.edad}</span>
         `
         lista.appendChild(li)
+    })
+
+    // 🔥 AGRUPAR POR EDAD
+    const edades = {}
+
+    data.forEach(alumno => {
+        const edad = alumno.edad
+        edades[edad] = (edades[edad] || 0) + 1
+    })
+
+    // DATOS PARA GRÁFICA
+    const labels = Object.keys(edades)
+    const valores = Object.values(edades)
+
+    // CREAR GRÁFICA
+    new Chart(document.getElementById('grafica'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Cantidad de alumnos',
+                data: valores
+            }]
+        }
     })
 }
 
