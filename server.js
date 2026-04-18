@@ -110,6 +110,15 @@ app.get('/alumnos', verificarToken, async (req, res) => {
     }
 })
 
+app.get('/usuarios', verificarToken, async (req, res) => {
+    try {
+        const usuarios = await Usuario.find()
+        res.json(usuarios)
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener usuarios' })
+    }
+})
+
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
