@@ -75,16 +75,17 @@ const token = localStorage.getItem('token')
 
 function mostrar(tipo) {
 
-    if (tipo === 'maestro') {
-        document.getElementById('formulario').innerHTML = `
-            <h4 class="text-center mb-3">Registrar Maestro</h4>
+if (tipo === 'maestro') {
+    document.getElementById('formulario').innerHTML = `
+        <h4 class="text-center mb-3">Registrar Maestro</h4>
 
-            <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-            <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre completo">
+        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
-            <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
-        `
-    }
+        <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
+    `
+}
 
     if (tipo === 'alumno') {
         document.getElementById('formulario').innerHTML = `
@@ -125,6 +126,7 @@ function mostrar(tipo) {
 
 // 🔐 CREAR USUARIO
 async function crearUsuario(rol) {
+    const nombre = document.getElementById('nombre')?.value
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
     const alumnoId = document.getElementById('alumnoId')?.value
@@ -135,7 +137,13 @@ async function crearUsuario(rol) {
             'Content-Type': 'application/json',
             'Authorization': token
         },
-        body: JSON.stringify({ usuario, password, rol, alumnoId })
+        body: JSON.stringify({
+            nombre,
+            usuario,
+            password,
+            rol,
+            alumnoId
+        })
     })
 
     const data = await res.json()
@@ -172,7 +180,7 @@ async function cargarMaestros() {
     data
         .filter(u => u.rol === 'maestro')
         .forEach(m => {
-            select.innerHTML += `<option value="${m._id}">${m.usuario}</option>`
+            select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
         })
 }
 

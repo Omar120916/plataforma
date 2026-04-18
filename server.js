@@ -15,10 +15,11 @@ mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuel
 
 // 🔥 MODELOS
 const Usuario = mongoose.model('Usuario', {
+    nombre: String, // 👈 NUEVO
     usuario: String,
     password: String,
-    rol: String, // admin, maestro, alumno, padre
-    alumnoId: String // para vincular papá o alumno
+    rol: String,
+    alumnoId: String
 })
 
 const Alumno = mongoose.model('Alumno', {
@@ -29,11 +30,12 @@ const Alumno = mongoose.model('Alumno', {
 
 // 🔐 REGISTRO DE USUARIO
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
-    const { usuario, password, rol, alumnoId } = req.body
+    const { nombre, usuario, password, rol, alumnoId } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
     const nuevo = new Usuario({
+        nombre,
         usuario,
         password: hash,
         rol,
@@ -42,7 +44,7 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
 
     await nuevo.save()
 
-    res.json({ mensaje: 'Usuario creado por admin' })
+    res.json({ mensaje: 'Usuario creado' })
 })
 
 // 🔐 LOGIN REAL
