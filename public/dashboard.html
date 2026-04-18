@@ -90,7 +90,7 @@ body { margin: 0; }
 </div>
 
 <script>
-const token = Storage.getItem('token')
+const token = localStorage.getItem('token')
 
 // 🧩 FORMULARIOS
 function formMaestro() {
@@ -193,20 +193,36 @@ async function crearAlumno() {
 
 // 👨‍🏫 CARGAR MAESTROS
 async function cargarMaestros() {
-    const res = await fetch('/usuarios', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('maestro')
-    select.innerHTML = '<option value="">Seleccionar maestro</option>'
-
-    data
-        .filter(u => u.rol === 'maestro')
-        .forEach(m => {
-            select.innerHTML += `<option value="${m._id}">${m.nombre || m.usuario}</option>`
+    try {
+        const res = await fetch('/usuarios', {
+            headers: {
+                'Authorization': token
+            }
         })
+
+        const data = await res.json()
+
+        const select = document.getElementById('maestro')
+
+        if (!select) {
+            console.error('No existe el select maestro')
+            return
+        }
+
+        select.innerHTML = '<option value="">Seleccionar maestro</option>'
+
+        data
+            .filter(u => u.rol === 'maestro')
+            .forEach(m => {
+                const option = document.createElement('option')
+                option.value = m._id
+                option.textContent = m.nombre || m.usuario
+                select.appendChild(option)
+            })
+
+    } catch (error) {
+        console.error('Error cargando maestros:', error)
+    }
 }
 
 // 👨‍🎓 CARGAR ALUMNOS
