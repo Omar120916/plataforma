@@ -25,6 +25,7 @@ const Usuario = mongoose.model('Usuario', {
 const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
+    maestro: String, // ID DEL MAESTRO
     tutor: String // nombre del papá (opcional)
 })
 

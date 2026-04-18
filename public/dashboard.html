@@ -96,8 +96,8 @@ if (tipo === 'maestro') {
             <input id="grado" class="form-control mb-2" placeholder="Grado">
             <input id="grupo" class="form-control mb-2" placeholder="Grupo">
 
-            <filter="maestro" class="form-select mb-3">
-                <option>Seleccionar maestro</option>
+            <select id="maestro" class="form-select mb-3">
+                <option value = "">Seleccionar maestro</option>
             </select>
 
             <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
@@ -154,6 +154,7 @@ async function crearUsuario(rol) {
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
     const edad = document.getElementById('grado').value
+    const maestro = document.getElementById('maestro').value
 
     await fetch('/alumnos', {
         method: 'POST',
@@ -161,7 +162,7 @@ async function crearAlumno() {
             'Content-Type': 'application/json',
             'Authorization': token
         },
-        body: JSON.stringify({ nombre, edad })
+        body: JSON.stringify({ nombre, edad, maestro })
     })
 
     alert('Alumno registrado')
