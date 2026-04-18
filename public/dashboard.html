@@ -120,6 +120,8 @@ function formAlumno() {
 function formPadre() {
     return `
         <h4 class="text-center mb-3">Registrar Papá</h4>
+
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre completo">
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
         <input id="password" type="password" class="form-control mb-2" placeholder="Contraseña">
 
@@ -128,7 +130,6 @@ function formPadre() {
         <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
     `
 }
-
 // 🔄 CAMBIAR SECCIÓN
 function mostrar(tipo) {
     const cont = document.getElementById('contenido')
