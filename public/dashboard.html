@@ -106,8 +106,12 @@ function formMaestro() {
 function formAlumno() {
     return `
         <h4 class="text-center mb-3">Registrar Alumno</h4>
+
         <input id="nombre" class="form-control mb-2" placeholder="Nombre">
         <input id="grado" class="form-control mb-2" placeholder="Grado">
+
+        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
         <select id="maestro" class="form-select mb-3">
             <option value="">Seleccionar maestro</option>
@@ -142,7 +146,7 @@ function mostrar(tipo) {
 
     if (tipo === 'alumno') {
         main.style.backgroundImage = "url('/img/fondo3.jpeg')"
-        cont.innerHTML = formAlumno()
+        cont.innerHTML = mno()
         cargarMaestros()
     }
 
@@ -179,7 +183,11 @@ async function crearAlumno() {
     const edad = document.getElementById('grado').value
     const maestro = document.getElementById('maestro').value
 
-    await fetch('/alumnos', {
+    const usuario = document.getElementById('usuario').value
+    const password = document.getElementById('password').value
+
+    // 🔥 1. Crear alumno
+    const resAlumno = await fetch('/alumnos', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -188,7 +196,25 @@ async function crearAlumno() {
         body: JSON.stringify({ nombre, edad, maestro })
     })
 
-    alert('Alumno registrado')
+    const alumno = await resAlumno.json()
+
+    // 🔥 2. Crear usuario para ese alumno
+    await fetch('/registro', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+        },
+        body: JSON.stringify({
+            nombre,
+            usuario,
+            password,
+            rol: 'alumno',
+            alumnoId: alumno._id // 👈 vinculación
+        })
+    })
+
+    alert('Alumno y usuario creados 🔥')
 }
 
 // 👨‍🏫 CARGAR MAESTROS

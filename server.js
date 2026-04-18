@@ -95,7 +95,7 @@ app.post('/alumnos', verificarToken, async (req, res) => {
     try {
         const nuevo = new Alumno(req.body)
         await nuevo.save()
-        res.json({ mensaje: 'Alumno guardado' })
+        res.json(nuevo) // 👈 esto es clave
     } catch (error) {
         res.status(500).json({ error: 'Error al guardar' })
     }
