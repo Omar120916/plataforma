@@ -82,7 +82,10 @@ body { margin: 0; }
     <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
     <button onclick="mostrar('padre')">👨‍👦 Papás</button>
+    <button onclick="mostrar('materia')">📚Materias</button>
 </div>
+
+<button onclick="mostrar('materia')">Materias</button>
 
 <!-- MAIN -->
 <div class="main">
@@ -134,6 +137,20 @@ function formPadre() {
         <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
     `
 }
+
+function formMateria() {
+    return `
+        <h4 class="text-center mb-3">Crear Materia</h4>
+
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre (Ej: Inglés)">
+
+        <select id="maestro" class="form-select mb-3">
+            <option value="">Seleccionar maestro</option>
+        </select>
+
+        <button class="btn btn-info w-100" onclick="crearMateria()">Crear</button>
+    `
+}
 // 🔄 CAMBIAR SECCIÓN
 function mostrar(tipo) {
     const cont = document.getElementById('contenido')
@@ -155,6 +172,12 @@ function mostrar(tipo) {
         cont.innerHTML = formPadre()
         cargarAlumnos()
     }
+
+    if (tipo === 'materia') {
+    main.style.backgroundImage = "url('/img/fondo4.jpeg')"
+    cont.innerHTML = formMateria()
+    cargarMaestros() // 👈 para llenar el select
+}
 }
 
 // 🔐 CREAR USUARIO
@@ -265,6 +288,23 @@ async function cargarAlumnos() {
     data.forEach(a => {
         select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
     })
+}
+
+async function crearMateria() {
+    const nombre = document.getElementById('nombre').value
+    const maestroId = document.getElementById('maestro').value
+
+    const res = await fetch('/materias', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': token
+        },
+        body: JSON.stringify({ nombre, maestroId })
+    })
+
+    const data = await res.json()
+    alert('Materia creada 🔥')
 }
 
 // 🚀 INICIO

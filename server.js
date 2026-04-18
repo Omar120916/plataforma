@@ -119,6 +119,23 @@ app.get('/usuarios', verificarToken, async (req, res) => {
     }
 })
 
+const Materia = mongoose.model('Materia', {
+    nombre: String,
+    maestroId: String
+})
+
+app.post('/materias', verificarToken, async (req, res) => {
+    const nueva = new Materia(req.body)
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/materias', verificarToken, async (req, res) => {
+    const materias = await Materia.find()
+    res.json(materias)
+})
+
+
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
