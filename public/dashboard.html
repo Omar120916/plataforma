@@ -2,68 +2,54 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Admin</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
 body {
-    background: #f5f6fa;
+    margin: 0;
+    font-family: Arial, sans-serif;
 }
 
-/* SIDEBAR */
-.sidebar {
+/* FONDO */
+.fondo {
     min-height: 100vh;
-    background: linear-gradient(180deg, #2b6cb0, #1e40af);
-    color: white;
+    background: url('https://images.unsplash.com/photo-1588072432836-e10032774350') no-repeat center;
+    background-size: cover;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.sidebar button {
+/* CARD */
+.card-form {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 15px;
     width: 100%;
-    margin-bottom: 10px;
-    border: none;
-    background: transparent;
-    color: white;
-    text-align: left;
-    padding: 10px;
+    max-width: 420px;
 }
 
-.sidebar button:hover {
-    background: rgba(255,255,255,0.2);
-    border-radius: 8px;
+/* BOTONES ARRIBA */
+.menu {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+}
+
+.menu button {
+    margin-right: 5px;
 }
 
 /* RESPONSIVE */
 @media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        width: 250px;
-        left: -250px;
-        top: 0;
-        height: 100%;
-        z-index: 1000;
-        transition: 0.3s;
-    }
-
-    .sidebar.active {
-        left: 0;
-    }
-
-    .overlay {
-        display: none;
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        top: 0;
-        left: 0;
-        z-index: 999;
-    }
-
-    .overlay.active {
-        display: block;
+    .card-form {
+        margin: 20px;
     }
 }
 </style>
@@ -71,91 +57,79 @@ body {
 
 <body>
 
-<!-- BOTÓN MOBILE -->
-<nav class="navbar bg-primary text-white d-md-none">
-    <button class="btn btn-light" onclick="toggleSidebar()">☰</button>
-    <span>Admin</span>
-</nav>
-
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
-
-<div class="container-fluid">
-<div class="row">
-
-<!-- SIDEBAR -->
-<div class="col-md-3 col-lg-2 sidebar p-3" id="sidebar">
-    <h4>📚 Admin</h4>
-    <hr>
-
-    <button onclick="mostrar('maestros')">👨‍🏫 Maestros</button>
-    <button onclick="mostrar('alumnos')">👨‍🎓 Alumnos</button>
-    <button onclick="mostrar('padres')">👨‍👩‍👧 Papás</button>
+<!-- MENÚ -->
+<div class="menu">
+    <button class="btn btn-primary btn-sm" onclick="mostrar('maestro')">Maestro</button>
+    <button class="btn btn-success btn-sm" onclick="mostrar('alumno')">Alumno</button>
+    <button class="btn btn-warning btn-sm" onclick="mostrar('padre')">Papá</button>
 </div>
 
-<!-- CONTENIDO -->
-<div class="col-md-9 col-lg-10 p-4">
+<div class="fondo">
 
-    <div id="contenido"></div>
+    <div id="formulario" class="card-form shadow"></div>
 
-</div>
-
-</div>
 </div>
 
 <script>
 const token = localStorage.getItem('token')
 
-// MENU MOBILE
-function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('active')
-    document.getElementById('overlay').classList.toggle('active')
+function mostrar(tipo) {
+
+    if (tipo === 'maestro') {
+        document.getElementById('formulario').innerHTML = `
+            <h4 class="text-center mb-3">Registrar Maestro</h4>
+
+            <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+            <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
+
+            <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
+        `
+    }
+
+    if (tipo === 'alumno') {
+        document.getElementById('formulario').innerHTML = `
+            <h4 class="text-center mb-3">Registrar Alumno</h4>
+
+            <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+            <input id="correo" class="form-control mb-2" placeholder="Correo">
+            <input id="grado" class="form-control mb-2" placeholder="Grado">
+            <input id="grupo" class="form-control mb-2" placeholder="Grupo">
+
+            <select id="maestro" class="form-select mb-3">
+                <option>Seleccionar maestro</option>
+            </select>
+
+            <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
+        `
+
+        cargarMaestros()
+    }
+
+    if (tipo === 'padre') {
+        document.getElementById('formulario').innerHTML = `
+            <h4 class="text-center mb-3">Registrar Papá</h4>
+
+            <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+            <input id="password" type="password" class="form-control mb-2" placeholder="Contraseña">
+
+            <select id="alumnoId" class="form-select mb-3">
+                <option>Seleccionar alumno</option>
+            </select>
+
+            <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
+        `
+
+        cargarAlumnos()
+    }
 }
 
-// SECCIONES
-function mostrar(seccion) {
-
-    if (seccion === 'maestros') {
-        document.getElementById('contenido').innerHTML = `
-            <div class="card p-4 shadow">
-                <h5>Agregar Maestro</h5>
-                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-                <input id="password" class="form-control mb-2" type="password" placeholder="Contraseña">
-                <button class="btn btn-primary w-100" onclick="crear('maestro')">Guardar</button>
-            </div>
-        `
-    }
-
-    if (seccion === 'alumnos') {
-        document.getElementById('contenido').innerHTML = `
-            <div class="card p-4 shadow">
-                <h5>Agregar Alumno</h5>
-                <input id="nombre" class="form-control mb-2" placeholder="Nombre">
-                <input id="edad" class="form-control mb-2" placeholder="Edad">
-                <button class="btn btn-success w-100" onclick="crearAlumno()">Guardar</button>
-            </div>
-        `
-    }
-
-    if (seccion === 'padres') {
-        document.getElementById('contenido').innerHTML = `
-            <div class="card p-4 shadow">
-                <h5>Agregar Papá</h5>
-                <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-                <input id="password" class="form-control mb-2" type="password" placeholder="Contraseña">
-                <input id="alumnoId" class="form-control mb-2" placeholder="ID alumno">
-                <button class="btn btn-warning w-100" onclick="crear('padre')">Guardar</button>
-            </div>
-        `
-    }
-}
-
-// CREAR USUARIO
-async function crear(rol) {
+// 🔐 CREAR USUARIO
+async function crearUsuario(rol) {
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
     const alumnoId = document.getElementById('alumnoId')?.value
 
-    await fetch('/registro', {
+    const res = await fetch('/registro', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -164,13 +138,14 @@ async function crear(rol) {
         body: JSON.stringify({ usuario, password, rol, alumnoId })
     })
 
-    alert('Usuario creado')
+    const data = await res.json()
+    alert(data.mensaje)
 }
 
-// CREAR ALUMNO
+// 👨‍🎓 CREAR ALUMNO
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
-    const edad = document.getElementById('edad').value
+    const edad = document.getElementById('grado').value
 
     await fetch('/alumnos', {
         method: 'POST',
@@ -181,8 +156,43 @@ async function crearAlumno() {
         body: JSON.stringify({ nombre, edad })
     })
 
-    alert('Alumno creado')
+    alert('Alumno registrado')
 }
+
+// 👨‍🏫 CARGAR MAESTROS
+async function cargarMaestros() {
+    const res = await fetch('/usuarios', {
+        headers: { 'Authorization': token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('maestro')
+
+    data
+        .filter(u => u.rol === 'maestro')
+        .forEach(m => {
+            select.innerHTML += `<option value="${m._id}">${m.usuario}</option>`
+        })
+}
+
+// 👨‍🎓 CARGAR ALUMNOS
+async function cargarAlumnos() {
+    const res = await fetch('/alumnos', {
+        headers: { 'Authorization': token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('alumnoId')
+
+    data.forEach(a => {
+        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
+    })
+}
+
+// CARGA INICIAL
+mostrar('maestro')
 </script>
 
 </body>
