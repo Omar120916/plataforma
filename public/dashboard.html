@@ -116,9 +116,7 @@ function formAlumno() {
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
         <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
-        <select id="maestro" class="form-select mb-3">
-            <option value="">Seleccionar maestro</option>
-        </select>
+        <select id="materias" class="form-select mb-3" multiple> </select>
 
         <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
     `
@@ -305,6 +303,21 @@ async function crearMateria() {
 
     const data = await res.json()
     alert('Materia creada 🔥')
+}
+
+async function cargarMaterias() {
+    const res = await fetch('/materias', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('materias')
+    select.innerHTML = ''
+
+    data.forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
 }
 
 // 🚀 INICIO
