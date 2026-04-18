@@ -20,9 +20,11 @@ const Usuario = mongoose.model('Usuario', {
     rol: String
 })
 
-const Alumno = mongoose.model('Alumno', {
-    nombre: String,
-    edad: String
+const Usuario = mongoose.model('Usuario', {
+    usuario: String,
+    password: String,
+    rol: String, // admin, maestro, alumno, padre
+    alumnoId: String // para vincular papá o alumno
 })
 
 // 🔐 REGISTRO DE USUARIO
@@ -58,7 +60,7 @@ app.post('/login', async (req, res) => {
         return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
     }
 
-    const token = jwt.sign({ usuario: user.usuario }, 'secreto123')
+    const token = jwt.sign({ usuario: user.usuario, rol: user.rol }, 'secreto123')
 
     res.json({ token })
 })
