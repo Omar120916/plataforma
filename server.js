@@ -135,6 +135,20 @@ app.get('/materias', verificarToken, async (req, res) => {
     res.json(materias)
 })
 
+app.get('/mi-alumno', verificarToken, async (req, res) => {
+    const user = req.usuario
+
+    const alumno = await Alumno.findById(user.alumnoId)
+
+    const materias = await Materia.find({
+        _id: { $in: alumno.materias }
+    })
+
+    res.json({
+        ...alumno.toObject(),
+        materias
+    })
+})
 
 const PORT = process.env.PORT || 3000
 

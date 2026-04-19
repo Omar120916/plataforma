@@ -40,17 +40,21 @@ async function login() {
 
     const data = await res.json()
 
-    if (res.ok) {
+    if (res.ok && data.token) {
+
+        // 🔐 guardar token PRIMERO
+        localStorage.setItem('token', data.token)
+
+        // 🔥 decodificar después
         const payload = JSON.parse(atob(data.token.split('.')[1]))
 
-localStorage.setItem('token', data.token)
+        if (payload.rol === 'admin') window.location.href = '/dashboard.html'
+        if (payload.rol === 'maestro') window.location.href = '/maestro.html'
+        if (payload.rol === 'alumno') window.location.href = '/alumno.html'
+        if (payload.rol === 'padre') window.location.href = '/padre.html'
 
-if (payload.rol === 'admin') window.location.href = 'dashboard.html'
-if (payload.rol === 'maestro') window.location.href = 'maestro.html'
-if (payload.rol === 'alumno') window.location.href = 'alumno.html'
-if (payload.rol === 'padre') window.location.href = 'padre.html'
     } else {
-        alert(data.mensaje)
+        alert(data.mensaje || 'Error en login')
     }
 }
 

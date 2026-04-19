@@ -1,23 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alumno</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #f5f6fa;
+}
+
+/* NAVBAR */
+.navbar {
+    background: #0d6efd;
+    color: white;
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 220px;
+    height: 100vh;
+    background: #1e3a8a;
+    position: fixed;
+    color: white;
+    padding: 20px;
+}
+
+.sidebar button {
+    width: 100%;
+    margin-bottom: 10px;
+    border: none;
+    background: none;
+    color: white;
+    text-align: left;
+}
+
+/* MAIN */
+.main {
+    margin-left: 220px;
+    padding: 20px;
+}
+
+/* CARDS */
+.card {
+    border-radius: 15px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+}
+</style>
 </head>
 
-<body class="container mt-4">
+<body>
 
-<h3>👨‍🎓 Panel del Alumno</h3>
+<!-- NAVBAR -->
+<nav class="navbar p-3">
+    <h5>🎓 Alumno Dashboard</h5>
+</nav>
 
-<div id="info"></div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h5>Menú</h5>
+    <button onclick="mostrar('inicio')">🏠 Inicio</button>
+    <button onclick="mostrar('materias')">📚 Materias</button>
+    <button onclick="mostrar('calificaciones')">📊 Calificaciones</button>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="contenido"></div>
 
 <script>
 const token = localStorage.getItem('token')
-const payload = JSON.parse(atob(token.split('.')[1]))
 
-document.getElementById('info').innerHTML = `
-    <p>Bienvenid@ ${payload.usuario}</p>
-`
+// 🔄 CAMBIAR VISTA
+function mostrar(tipo) {
+    const cont = document.getElementById('contenido')
+
+    if (tipo === 'inicio') {
+        cont.innerHTML = `
+            <h3>Bienvenido 👋</h3>
+            <p>Este es tu panel</p>
+        `
+    }
+
+    if (tipo === 'materias') {
+        cargarMateriasAlumno()
+    }
+
+    if (tipo === 'calificaciones') {
+        cont.innerHTML = `
+            <h3>Calificaciones</h3>
+            <div class="card p-3">
+                <p>Matemáticas: 9.0</p>
+                <p>Inglés: 8.5</p>
+            </div>
+        `
+    }
+}
+
+// 📚 CARGAR MATERIAS DEL ALUMNO
+async function cargarMateriasAlumno() {
+    const res = await fetch('/mi-alumno', {
+        headers: { Authorization: token }
+    })
+
+    const alumno = await res.json()
+
+    let html = '<h3>Mis materias</h3><div class="row">'
+
+    alumno.materias.forEach(m => {
+        html += `
+            <div class="col-md-4">
+                <div class="card p-3 mb-3">
+                    <h5>${m.nombre}</h5>
+                </div>
+            </div>
+        `
+    })
+
+    html += '</div>'
+
+    document.getElementById('contenido').innerHTML = html
+}
+
+// 🚀 INICIO
+mostrar('inicio')
 </script>
 
 </body>
