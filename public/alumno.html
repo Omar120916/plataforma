@@ -10,56 +10,87 @@
 <style>
 body {
     margin: 0;
-    font-family: Arial;
-    background: #f5f6fa;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #1e3a8a, #0d6efd);
+    color: white;
 }
 
-/* NAVBAR */
-.navbar {
+/* BOTÓN ☰ */
+.menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
     background: #0d6efd;
+    border: none;
     color: white;
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
 }
 
 /* SIDEBAR */
 .sidebar {
     width: 220px;
     height: 100vh;
-    background: #1e3a8a;
     position: fixed;
-    color: white;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
     padding: 20px;
+    transition: 0.3s;
 }
 
 .sidebar button {
     width: 100%;
-    margin-bottom: 10px;
     border: none;
     background: none;
     color: white;
+    padding: 12px;
     text-align: left;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.sidebar button:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateX(5px);
 }
 
 /* MAIN */
 .main {
     margin-left: 220px;
     padding: 20px;
+    transition: 0.3s;
 }
 
 /* CARDS */
 .card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
     border-radius: 15px;
+    color: white;
 }
 
-/* RESPONSIVE */
+/* 📱 RESPONSIVE */
 @media (max-width: 768px) {
+
+    .menu-toggle {
+        display: block;
+    }
+
     .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
     }
 
     .main {
         margin-left: 0;
+        padding-top: 60px;
     }
 }
 </style>
@@ -72,6 +103,7 @@ body {
     <h5>🎓 Alumno Dashboard</h5>
 </nav>
 
+<button class="menu-toggle" onclick="toggleMenu()">☰</button>
 <!-- SIDEBAR -->
 <div class="sidebar">
     <h5>Menú</h5>
@@ -85,6 +117,10 @@ body {
 
 <script>
 const token = localStorage.getItem('token')
+
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('active')
+}
 
 // 🔄 CAMBIAR VISTA
 function mostrar(tipo) {
@@ -110,6 +146,8 @@ function mostrar(tipo) {
             </div>
         `
     }
+
+    document.querySelector('.sidebar').classList.remove('active')
 }
 
 // 📚 CARGAR MATERIAS DEL ALUMNO
