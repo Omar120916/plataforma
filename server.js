@@ -179,6 +179,21 @@ const Calificacion = mongoose.model('Calificacion', {
     calificacion: Number
 })
 
+app.get('/mis-materias', verificarToken, async (req, res) => {
+    const materias = await Materia.find({ maestroId: req.usuario.usuario })
+    res.json(materias)
+})
+
+app.get('/mis-alumnos', verificarToken, async (req, res) => {
+    const materias = await Materia.find({ maestroId: req.usuario.usuario })
+
+    const alumnos = await Alumno.find({
+        materias: { $in: materias.map(m => m._id.toString()) }
+    })
+
+    res.json(alumnos)
+})
+
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
