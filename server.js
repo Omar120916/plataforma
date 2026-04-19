@@ -130,6 +130,29 @@ app.post('/materias', verificarToken, async (req, res) => {
     res.json(nueva)
 })
 
+app.post('/calificaciones', verificarToken, async (req, res) => {
+    const nueva = new Calificacion(req.body)
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/mis-calificaciones', verificarToken, async (req, res) => {
+    const user = req.usuario
+
+    const califs = await Calificacion.find({ alumnoId: user.alumnoId })
+    const materias = await Materia.find()
+
+    const resultado = califs.map(c => {
+        const materia = materias.find(m => m._id.toString() === c.materiaId)
+        return {
+            materia: materia?.nombre,
+            calificacion: c.calificacion
+        }
+    })
+
+    res.json(resultado)
+})
+
 app.get('/materias', verificarToken, async (req, res) => {
     const materias = await Materia.find()
     res.json(materias)
@@ -148,6 +171,12 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
         ...alumno.toObject(),
         materias
     })
+})
+
+const Calificacion = mongoose.model('Calificacion', {
+    alumnoId: String,
+    materiaId: String,
+    calificacion: Number
 })
 
 const PORT = process.env.PORT || 3000

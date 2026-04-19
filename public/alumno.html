@@ -16,7 +16,7 @@ body {
     transition: 0.3s;
 }
 
-/* 🌙 DARK (default) */
+/* 🌙 DARK */
 body.dark {
     background: #0f172a;
     color: #e2e8f0;
@@ -146,10 +146,14 @@ body.light .card {
 <nav class="navbar p-3">
     <h5>🎓 Alumno Dashboard</h5>
 </nav>
-<button onclick="toggleTheme()" class="btn btn-sm btn-light">
+
+<!-- BOTONES -->
+<button onclick="toggleTheme()" class="btn btn-sm btn-outline-light" style="position: fixed; top: 10px; right: 10px;">
     🌙 / ☀️
 </button>
+
 <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
 <!-- SIDEBAR -->
 <div class="sidebar">
     <h5>Menú</h5>
@@ -164,20 +168,26 @@ body.light .card {
 <script>
 const token = localStorage.getItem('token')
 
+// 🔥 CARGAR TEMA AL INICIO (CORREGIDO)
+window.onload = () => {
+    const theme = localStorage.getItem('theme') || 'dark'
+    document.body.classList.add(theme)
+}
+
+// 🌗 CAMBIAR TEMA
 function toggleTheme() {
     const body = document.body
 
     if (body.classList.contains('dark')) {
-        body.classList.remove('dark')
-        body.classList.add('light')
+        body.classList.replace('dark', 'light')
         localStorage.setItem('theme', 'light')
     } else {
-        body.classList.remove('light')
-        body.classList.add('dark')
+        body.classList.replace('light', 'dark')
         localStorage.setItem('theme', 'dark')
     }
 }
 
+// ☰ MENÚ RESPONSIVE
 function toggleMenu() {
     document.querySelector('.sidebar').classList.toggle('active')
 }
@@ -201,16 +211,18 @@ function mostrar(tipo) {
         cont.innerHTML = `
             <h3>Calificaciones</h3>
             <div class="card p-3">
-                <p>Matemáticas: 9.0</p>
-                <p>Inglés: 8.5</p>
+                <p>Inglés: 9</p>
+                <p>Computación: 10</p>
             </div>
         `
     }
 
-    document.querySelector('.sidebar').classList.remove('active')
+    // 👇 CERRAR MENÚ EN MÓVIL
+    const sidebar = document.querySelector('.sidebar')
+    if (sidebar) sidebar.classList.remove('active')
 }
 
-// 📚 CARGAR MATERIAS DEL ALUMNO
+// 📚 CARGAR MATERIAS
 async function cargarMateriasAlumno() {
     const res = await fetch('/mi-alumno', {
         headers: { Authorization: token }
@@ -233,10 +245,6 @@ async function cargarMateriasAlumno() {
     html += '</div>'
 
     document.getElementById('contenido').innerHTML = html
-    window.onload = () => {
-    const theme = localStorage.getItem('theme') || 'dark'
-    document.body.classList.add(theme)
-}
 }
 
 // 🚀 INICIO
