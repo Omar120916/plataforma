@@ -85,7 +85,6 @@ body { margin: 0; }
     <button onclick="mostrar('materia')">📚Materias</button>
 </div>
 
-<button onclick="mostrar('materia')">Materias</button>
 
 <!-- MAIN -->
 <div class="main">
@@ -162,7 +161,7 @@ function mostrar(tipo) {
     if (tipo === 'alumno') {
         main.style.backgroundImage = "url('/img/fondo3.jpeg')"
         cont.innerHTML = formAlumno()
-        cargarMaestros()
+        cargarMaterias()
     }
 
     if (tipo === 'padre') {
@@ -174,7 +173,7 @@ function mostrar(tipo) {
     if (tipo === 'materia') {
     main.style.backgroundImage = "url('/img/fondo4.jpeg')"
     cont.innerHTML = formMateria()
-    cargarMaestros() // 👈 para llenar el select
+    cargarMaterias() // 👈 para llenar el select
 }
 }
 
@@ -202,7 +201,9 @@ async function crearUsuario(rol) {
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
     const edad = document.getElementById('grado').value
-    const maestro = document.getElementById('maestro').value
+    const materias = Array.from(
+    document.getElementById('materias').selectedOptions
+).map(opt => opt.value)
 
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
@@ -214,7 +215,7 @@ async function crearAlumno() {
             'Content-Type': 'application/json',
             'Authorization': token
         },
-        body: JSON.stringify({ nombre, edad, maestro })
+        body: JSON.stringify({ nombre, edad, materias })
     })
 
     const alumno = await resAlumno.json()
