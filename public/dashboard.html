@@ -83,6 +83,9 @@ body { margin: 0; }
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
     <button onclick="mostrar('padre')">👨‍👦 Papás</button>
     <button onclick="mostrar('materia')">📚Materias</button>
+    <button onclick="logout()" class="btn btn-sm btn-danger" style="position:fixed; top: 50px; right: 10px;">
+        Cerrar Sesion
+    </button>
 </div>
 
 
@@ -319,6 +322,13 @@ async function cargarMaterias() {
     data.forEach(m => {
         select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
     })
+}
+
+function logout() {
+    if (confirm('¿Seguro que quieres cerrar sesión?')) {
+        localStorage.removeItem('token')
+        window.location.href = '/login.html'
+    }
 }
 
 // 🚀 INICIO
