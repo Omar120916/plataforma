@@ -8,28 +8,69 @@ const app = express()
 app.use(express.json())
 app.use(express.static('public'))
 
-// 🔥 CONEXIÓN A MONGO
+// 🔥 CONEXIÓN
 mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuela')
     .then(() => console.log('Conectado a MongoDB'))
     .catch(err => console.log(err))
 
-// 🔥 MODELOS
+// =====================
+// 📦 MODELOS
+// =====================
+
 const Usuario = mongoose.model('Usuario', {
-    nombre: String, // 👈 NUEVO
+    nombre: String,
     usuario: String,
     password: String,
     rol: String,
-    alumnoId: String
+    alumnoId: mongoose.Schema.Types.ObjectId
+})
+
+const Materia = mongoose.model('Materia', {
+    nombre: String,
+    maestroId: mongoose.Schema.Types.ObjectId
 })
 
 const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
-    materias: [String], // ID DEL MAESTRO
-    tutor: String // nombre del papá (opcional)
+    materias: [mongoose.Schema.Types.ObjectId]
 })
 
-// 🔐 REGISTRO DE USUARIO
+const Calificacion = mongoose.model('Calificacion', {
+    alumnoId: mongoose.Schema.Types.ObjectId,
+    materiaId: mongoose.Schema.Types.ObjectId,
+    calificacion: Number
+})
+
+// =====================
+// 🔐 MIDDLEWARE
+// =====================
+
+function verificarToken(req, res, next) {
+    const token = req.headers['authorization']
+
+    if (!token) return res.status(403).json({ mensaje: 'No autorizado' })
+
+    try {
+        const decoded = jwt.verify(token, 'secreto123')
+        req.usuario = decoded
+        next()
+    } catch {
+        res.status(401).json({ mensaje: 'Token inválido' })
+    }
+}
+
+function soloAdmin(req, res, next) {
+    if (req.usuario.rol !== 'admin') {
+        return res.status(403).json({ mensaje: 'Solo admin' })
+    }
+    next()
+}
+
+// =====================
+// 🔐 LOGIN / REGISTRO
+// =====================
+
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
     const { nombre, usuario, password, rol, alumnoId } = req.body
 
@@ -48,87 +89,97 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
     res.json({ mensaje: 'Usuario creado' })
 })
 
-// 🔐 LOGIN REAL
 app.post('/login', async (req, res) => {
     const { usuario, password } = req.body
 
     const user = await Usuario.findOne({ usuario })
 
-    if (!user) {
-        return res.status(401).json({ mensaje: 'Usuario no existe' })
-    }
+    if (!user) return res.status(401).json({ mensaje: 'Usuario no existe' })
 
     const valido = await bcrypt.compare(password, user.password)
 
-    if (!valido) {
-        return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
-    }
+    if (!valido) return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
 
-    const token = jwt.sign({usuario: user.usuario, rol: user.rol,alumnoId: user.alumnoId}, 'secreto123')
+    const token = jwt.sign({
+        id: user._id, // 🔥 IMPORTANTE
+        usuario: user.usuario,
+        rol: user.rol,
+        alumnoId: user.alumnoId
+    }, 'secreto123')
+
     res.json({ token })
 })
 
-// 🛡️ MIDDLEWARE
-function verificarToken(req, res, next) {
-    const token = req.headers['authorization']
+// =====================
+// 👨‍🎓 ALUMNOS
+// =====================
 
-    if (!token) return res.status(403).json({ mensaje: 'No autorizado' })
-
-    try {
-        const decoded = jwt.verify(token, 'secreto123')
-        req.usuario = decoded
-        next()
-    } catch {
-        res.status(401).json({ mensaje: 'Token inválido' })
-    }
-}
-
-function soloAdmin(req, res, next) {
-    if (req.usuario.rol !== 'admin') {
-        return res.status(403).json({ mensaje: 'Solo admin puede hacer esto' })
-    }
-    next()
-}
-
-// 👨‍🎓 RUTAS PROTEGIDAS
 app.post('/alumnos', verificarToken, async (req, res) => {
-    try {
-        const nuevo = new Alumno(req.body)
-        await nuevo.save()
-        res.json(nuevo) // 👈 esto es clave
-    } catch (error) {
-        res.status(500).json({ error: 'Error al guardar' })
-    }
+    const nuevo = new Alumno(req.body)
+    await nuevo.save()
+    res.json(nuevo)
 })
 
 app.get('/alumnos', verificarToken, async (req, res) => {
-    try {
-        const alumnos = await Alumno.find()
-        res.json(alumnos)
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener alumnos' })
-    }
+    const alumnos = await Alumno.find()
+    res.json(alumnos)
 })
+
+// =====================
+// 👥 USUARIOS
+// =====================
 
 app.get('/usuarios', verificarToken, async (req, res) => {
-    try {
-        const usuarios = await Usuario.find()
-        res.json(usuarios)
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener usuarios' })
-    }
+    const usuarios = await Usuario.find()
+    res.json(usuarios)
 })
 
-const Materia = mongoose.model('Materia', {
-    nombre: String,
-    maestroId: String
-})
+// =====================
+// 📚 MATERIAS
+// =====================
 
 app.post('/materias', verificarToken, async (req, res) => {
-    const nueva = new Materia(req.body)
+    const nueva = new Materia({
+        nombre: req.body.nombre,
+        maestroId: req.body.maestroId
+    })
+
     await nueva.save()
     res.json(nueva)
 })
+
+app.get('/materias', verificarToken, async (req, res) => {
+    const materias = await Materia.find()
+    res.json(materias)
+})
+
+// =====================
+// 👨‍🏫 MAESTRO
+// =====================
+
+// materias del maestro
+app.get('/mis-materias', verificarToken, async (req, res) => {
+    const materias = await Materia.find({ maestroId: req.usuario.id })
+    res.json(materias)
+})
+
+// alumnos del maestro
+app.get('/mis-alumnos', verificarToken, async (req, res) => {
+
+    const materias = await Materia.find({ maestroId: req.usuario.id })
+
+    const ids = materias.map(m => m._id)
+
+    const alumnos = await Alumno.find({
+        materias: { $in: ids }
+    })
+
+    res.json(alumnos)
+})
+
+// =====================
+// 📝 CALIFICACIONES
+// =====================
 
 app.post('/calificaciones', verificarToken, async (req, res) => {
     const nueva = new Calificacion(req.body)
@@ -136,14 +187,17 @@ app.post('/calificaciones', verificarToken, async (req, res) => {
     res.json(nueva)
 })
 
+// alumno ve sus calificaciones
 app.get('/mis-calificaciones', verificarToken, async (req, res) => {
-    const user = req.usuario
 
-    const califs = await Calificacion.find({ alumnoId: user.alumnoId })
+    const califs = await Calificacion.find({
+        alumnoId: req.usuario.alumnoId
+    })
+
     const materias = await Materia.find()
 
     const resultado = califs.map(c => {
-        const materia = materias.find(m => m._id.toString() === c.materiaId)
+        const materia = materias.find(m => m._id.toString() === c.materiaId.toString())
         return {
             materia: materia?.nombre,
             calificacion: c.calificacion
@@ -153,15 +207,13 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
     res.json(resultado)
 })
 
-app.get('/materias', verificarToken, async (req, res) => {
-    const materias = await Materia.find()
-    res.json(materias)
-})
+// =====================
+// 🎓 DASHBOARD ALUMNO
+// =====================
 
 app.get('/mi-alumno', verificarToken, async (req, res) => {
-    const user = req.usuario
 
-    const alumno = await Alumno.findById(user.alumnoId)
+    const alumno = await Alumno.findById(req.usuario.alumnoId)
 
     const materias = await Materia.find({
         _id: { $in: alumno.materias }
@@ -173,29 +225,12 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
     })
 })
 
-const Calificacion = mongoose.model('Calificacion', {
-    alumnoId: String,
-    materiaId: String,
-    calificacion: Number
-})
-
-app.get('/mis-materias', verificarToken, async (req, res) => {
-    const materias = await Materia.find({ maestroId: req.usuario.usuario })
-    res.json(materias)
-})
-
-app.get('/mis-alumnos', verificarToken, async (req, res) => {
-    const materias = await Materia.find({ maestroId: req.usuario.usuario })
-
-    const alumnos = await Alumno.find({
-        materias: { $in: materias.map(m => m._id.toString()) }
-    })
-
-    res.json(alumnos)
-})
+// =====================
+// 🚀 SERVER
+// =====================
 
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, () => {
-    console.log('Servidor corriendo')
+    console.log('Servidor corriendo 🔥')
 })
