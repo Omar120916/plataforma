@@ -101,7 +101,7 @@ app.post('/login', async (req, res) => {
     if (!valido) return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
 
     const token = jwt.sign({
-        id: user._id, // 🔥 IMPORTANTE
+        id: user._id,
         usuario: user.usuario,
         rol: user.rol,
         alumnoId: user.alumnoId
@@ -115,7 +115,14 @@ app.post('/login', async (req, res) => {
 // =====================
 
 app.post('/alumnos', verificarToken, async (req, res) => {
-    const nuevo = new Alumno(req.body)
+    const materias = (req.body.materias || []).map(id => new mongoose.Types.ObjectId(id))
+
+    const nuevo = new Alumno({
+        nombre: req.body.nombre,
+        edad: req.body.edad,
+        materias
+    })
+
     await nuevo.save()
     res.json(nuevo)
 })
@@ -141,7 +148,7 @@ app.get('/usuarios', verificarToken, async (req, res) => {
 app.post('/materias', verificarToken, async (req, res) => {
     const nueva = new Materia({
         nombre: req.body.nombre,
-        maestroId: req.body.maestroId
+        maestroId: new mongoose.Types.ObjectId(req.body.maestroId) // 🔥 FIX CLAVE
     })
 
     await nueva.save()
@@ -157,16 +164,19 @@ app.get('/materias', verificarToken, async (req, res) => {
 // 👨‍🏫 MAESTRO
 // =====================
 
-// materias del maestro
 app.get('/mis-materias', verificarToken, async (req, res) => {
-    const materias = await Materia.find({ maestroId: req.usuario.id })
+    const id = new mongoose.Types.ObjectId(req.usuario.id)
+
+    const materias = await Materia.find({ maestroId: id })
+
     res.json(materias)
 })
 
-// alumnos del maestro
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const materias = await Materia.find({ maestroId: req.usuario.id })
+    const id = new mongoose.Types.ObjectId(req.usuario.id)
+
+    const materias = await Materia.find({ maestroId: id })
 
     const ids = materias.map(m => m._id)
 
@@ -182,12 +192,16 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
 // =====================
 
 app.post('/calificaciones', verificarToken, async (req, res) => {
-    const nueva = new Calificacion(req.body)
+    const nueva = new Calificacion({
+        alumnoId: new mongoose.Types.ObjectId(req.body.alumnoId),
+        materiaId: new mongoose.Types.ObjectId(req.body.materiaId),
+        calificacion: req.body.calificacion
+    })
+
     await nueva.save()
     res.json(nueva)
 })
 
-// alumno ve sus calificaciones
 app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 
     const califs = await Calificacion.find({
