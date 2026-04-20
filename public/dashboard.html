@@ -10,7 +10,6 @@
 <style>
 body { margin: 0; }
 
-/* SIDEBAR */
 .sidebar {
     height: 100vh;
     width: 220px;
@@ -20,9 +19,7 @@ body { margin: 0; }
     padding-top: 20px;
 }
 
-.sidebar h4 {
-    text-align: center;
-}
+.sidebar h4 { text-align: center; }
 
 .sidebar button {
     width: 100%;
@@ -37,19 +34,16 @@ body { margin: 0; }
     background: rgba(255,255,255,0.2);
 }
 
-/* MAIN */
 .main {
     margin-left: 220px;
     min-height: 100vh;
     background-size: cover;
     background-position: center;
-
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* CARD */
 .card-form {
     background: rgba(255,255,255,0.95);
     padding: 30px;
@@ -57,40 +51,23 @@ body { margin: 0; }
     width: 100%;
     max-width: 420px;
 }
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-    }
-
-    .main {
-        margin-left: 0;
-        padding: 20px;
-    }
-}
 </style>
 </head>
 
 <body>
 
-<button onclick="logout()" class="btn btn-sm btn-danger" style="position:fixed; top: 50px; right: 10px;">
-        Cerrar Sesion
-    </button>
-<!-- SIDEBAR -->
+<button onclick="logout()" class="btn btn-danger btn-sm" style="position:fixed; top: 20px; right: 20px;">
+Cerrar sesión
+</button>
+
 <div class="sidebar">
     <h4>🎓 Admin</h4>
     <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
     <button onclick="mostrar('padre')">👨‍👦 Papás</button>
-    <button onclick="mostrar('materia')">📚Materias</button>
-    
+    <button onclick="mostrar('materia')">📚 Materias</button>
 </div>
 
-
-<!-- MAIN -->
 <div class="main">
     <div id="contenido" class="card-form shadow"></div>
 </div>
@@ -119,7 +96,7 @@ function formAlumno() {
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
         <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
-        <select id="materias" class="form-select mb-3" multiple> </select>
+        <select id="materias" class="form-select mb-3" multiple></select>
 
         <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
     `
@@ -152,6 +129,7 @@ function formMateria() {
         <button class="btn btn-info w-100" onclick="crearMateria()">Crear</button>
     `
 }
+
 // 🔄 CAMBIAR SECCIÓN
 function mostrar(tipo) {
     const cont = document.getElementById('contenido')
@@ -165,20 +143,29 @@ function mostrar(tipo) {
     if (tipo === 'alumno') {
         main.style.backgroundImage = "url('/img/fondo3.jpeg')"
         cont.innerHTML = formAlumno()
-        cargarMaterias()
+
+        requestAnimationFrame(() => {
+            cargarMaterias()
+        })
     }
 
     if (tipo === 'padre') {
         main.style.backgroundImage = "url('/img/fondo2.jpeg')"
         cont.innerHTML = formPadre()
-        cargarAlumnos()
+
+        requestAnimationFrame(() => {
+            cargarAlumnos()
+        })
     }
 
     if (tipo === 'materia') {
-    main.style.backgroundImage = "url('/img/fondo4.jpeg')"
-    cont.innerHTML = formMateria()
-    cargarMaterias() // 👈 para llenar el select
-}
+        main.style.backgroundImage = "url('/img/fondo4.jpeg')"
+        cont.innerHTML = formMateria()
+
+        requestAnimationFrame(() => {
+            cargarMaestros()
+        })
+    }
 }
 
 // 🔐 CREAR USUARIO
@@ -205,14 +192,12 @@ async function crearUsuario(rol) {
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
     const edad = document.getElementById('grado').value
-    const materias = Array.from(
-    document.getElementById('materias').selectedOptions
-).map(opt => opt.value)
+    const materias = Array.from(document.getElementById('materias').selectedOptions)
+        .map(opt => opt.value)
 
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
 
-    // 🔥 1. Crear alumno
     const resAlumno = await fetch('/alumnos', {
         method: 'POST',
         headers: {
@@ -224,7 +209,6 @@ async function crearAlumno() {
 
     const alumno = await resAlumno.json()
 
-    // 🔥 2. Crear usuario para ese alumno
     await fetch('/registro', {
         method: 'POST',
         headers: {
@@ -236,7 +220,7 @@ async function crearAlumno() {
             usuario,
             password,
             rol: 'alumno',
-            alumnoId: alumno._id // 👈 vinculación
+            alumnoId: alumno._id
         })
     })
 
@@ -245,47 +229,35 @@ async function crearAlumno() {
 
 // 👨‍🏫 CARGAR MAESTROS
 async function cargarMaestros() {
-    try {
-        const res = await fetch('/usuarios', {
-            headers: {
-                'Authorization': token
-            }
+    const select = document.getElementById('maestro')
+    if (!select) return
+
+    const res = await fetch('/usuarios', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    select.innerHTML = '<option value="">Seleccionar maestro</option>'
+
+    data
+        .filter(u => u.rol?.toLowerCase() === 'maestro')
+        .forEach(m => {
+            select.innerHTML += `<option value="${m._id}">${m.nombre || m.usuario}</option>`
         })
-
-        const data = await res.json()
-
-        const select = document.getElementById('maestro')
-
-        if (!select) {
-            console.error('No existe el select maestro')
-            return
-        }
-
-        select.innerHTML = '<option value="">Seleccionar maestro</option>'
-
-        data
-            .filter(u => u.rol === 'maestro')
-            .forEach(m => {
-                const option = document.createElement('option')
-                option.value = m._id
-                option.textContent = m.nombre || m.usuario
-                select.appendChild(option)
-            })
-
-    } catch (error) {
-        console.error('Error cargando maestros:', error)
-    }
 }
 
 // 👨‍🎓 CARGAR ALUMNOS
 async function cargarAlumnos() {
+    const select = document.getElementById('alumnoId')
+    if (!select) return
+
     const res = await fetch('/alumnos', {
         headers: { Authorization: token }
     })
 
     const data = await res.json()
 
-    const select = document.getElementById('alumnoId')
     select.innerHTML = ''
 
     data.forEach(a => {
@@ -293,11 +265,30 @@ async function cargarAlumnos() {
     })
 }
 
+// 📚 CARGAR MATERIAS
+async function cargarMaterias() {
+    const select = document.getElementById('materias')
+    if (!select) return
+
+    const res = await fetch('/materias', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    select.innerHTML = ''
+
+    data.forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
+}
+
+// 📚 CREAR MATERIA
 async function crearMateria() {
     const nombre = document.getElementById('nombre').value
     const maestroId = document.getElementById('maestro').value
 
-    const res = await fetch('/materias', {
+    await fetch('/materias', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -306,27 +297,13 @@ async function crearMateria() {
         body: JSON.stringify({ nombre, maestroId })
     })
 
-    const data = await res.json()
     alert('Materia creada 🔥')
+    mostrar('materia')
 }
 
-async function cargarMaterias() {
-    const res = await fetch('/materias', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('materias')
-    select.innerHTML = ''
-
-    data.forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
-}
-
+// 🚪 LOGOUT
 function logout() {
-    if (confirm('¿Seguro que quieres cerrar sesión?')) {
+    if (confirm('¿Cerrar sesión?')) {
         localStorage.removeItem('token')
         window.location.href = '/index.html'
     }
@@ -334,7 +311,6 @@ function logout() {
 
 // 🚀 INICIO
 mostrar('maestro')
-
 </script>
 
 </body>
