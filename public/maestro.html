@@ -142,6 +142,9 @@ body.light .card {
 <div class="sidebar">
     <button onclick="mostrar('materias')">📚 Mis materias</button>
     <button onclick="mostrar('alumnos')">👨‍🎓 Alumnos</button>
+    <button onclick="logout()" class="btn btn-sm btn-danger" style="position:fixed; top: 50px; right: 10px;">
+        Cerrar Sesion
+    </button>
 </div>
 
 <!-- MAIN -->
@@ -242,6 +245,13 @@ async function guardarCal(alumnoId, materiaId) {
     })
 
     alert('Guardado 🔥')
+}
+
+function logout() {
+    if (confirm('¿Seguro que quieres cerrar sesión?')) {
+        localStorage.removeItem('token')
+        window.location.href = '/login.html'
+    }
 }
 
 // 🚀 INICIO
