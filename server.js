@@ -48,7 +48,6 @@ const Calificacion = mongoose.model('Calificacion', {
 
 function verificarToken(req, res, next) {
     const token = req.headers['authorization']
-
     if (!token) return res.status(403).json({ mensaje: 'No autorizado' })
 
     try {
@@ -85,7 +84,6 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
     })
 
     await nuevo.save()
-
     res.json({ mensaje: 'Usuario creado' })
 })
 
@@ -93,11 +91,9 @@ app.post('/login', async (req, res) => {
     const { usuario, password } = req.body
 
     const user = await Usuario.findOne({ usuario })
-
     if (!user) return res.status(401).json({ mensaje: 'Usuario no existe' })
 
     const valido = await bcrypt.compare(password, user.password)
-
     if (!valido) return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
 
     const token = jwt.sign({
@@ -148,7 +144,7 @@ app.get('/usuarios', verificarToken, async (req, res) => {
 app.post('/materias', verificarToken, async (req, res) => {
     const nueva = new Materia({
         nombre: req.body.nombre,
-        maestroId: new mongoose.Types.ObjectId(req.body.maestroId) // 🔥 FIX CLAVE
+        maestroId: new mongoose.Types.ObjectId(req.body.maestroId)
     })
 
     await nueva.save()
@@ -164,17 +160,18 @@ app.get('/materias', verificarToken, async (req, res) => {
 // 👨‍🏫 MAESTRO
 // =====================
 
+// materias del maestro
 app.get('/mis-materias', verificarToken, async (req, res) => {
     const id = new mongoose.Types.ObjectId(req.usuario.id)
-
     const materias = await Materia.find({ maestroId: id })
-
     res.json(materias)
 })
 
+// alumnos del maestro (🔥 CON materiaId)
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const materias = await Materia.find({ maestroId: req.usuario.id })
+    const id = new mongoose.Types.ObjectId(req.usuario.id)
+    const materias = await Materia.find({ maestroId: id })
 
     let resultado = []
 
@@ -187,7 +184,7 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
             resultado.push({
                 _id: a._id,
                 nombre: a.nombre,
-                materiaId: materia._id // 🔥 CLAVE
+                materiaId: materia._id
             })
         })
     }
@@ -213,7 +210,7 @@ app.post('/calificaciones', verificarToken, async (req, res) => {
 app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 
     const califs = await Calificacion.find({
-        alumnoId: req.usuario.alumnoId
+        alumnoId: new mongoose.Types.ObjectId(req.usuario.alumnoId)
     })
 
     const materias = await Materia.find()
@@ -230,29 +227,8 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 })
 
 // =====================
-// 🎓 DASHBOARD ALUMNO
-// =====================
-
-app.get('/mi-alumno', verificarToken, async (req, res) => {
-
-    const alumno = await Alumno.findById(req.usuario.alumnoId)
-
-    const materias = await Materia.find({
-        _id: { $in: alumno.materias }
-    })
-
-    res.json({
-        ...alumno.toObject(),
-        materias
-    })
-})
-
-// =====================
 // 🚀 SERVER
 // =====================
 
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT, () => {
-    console.log('Servidor corriendo 🔥')
-})
+const PORT = 3000
+app.listen(PORT, () => console.log('Servidor corriendo 🔥'))

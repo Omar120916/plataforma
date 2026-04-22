@@ -230,9 +230,12 @@ async function cargarAlumnos() {
 
 // 💾 GUARDAR CALIFICACIÓN
 async function guardarCal(alumnoId, materiaId) {
+
+    console.log('CLICK 🔥', alumnoId, materiaId)
+
     const cal = document.getElementById(`cal-${alumnoId}`).value
 
-    await fetch('/calificaciones', {
+    const res = await fetch('/calificaciones', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -244,6 +247,9 @@ async function guardarCal(alumnoId, materiaId) {
             calificacion: cal
         })
     })
+
+    const data = await res.json()
+    console.log(data)
 
     alert('Guardado 🔥')
 }
