@@ -85,7 +85,7 @@ Cerrar Sesión
 const token = localStorage.getItem('token')
 
 // =======================
-// 🧩 FORMULARIOS
+// FORMULARIOS
 // =======================
 
 function formCarrera() {
@@ -138,45 +138,38 @@ function formMateria() {
 }
 
 // =======================
-// 🔄 CAMBIAR VISTA
+// CAMBIAR VISTA
 // =======================
 
 function mostrar(tipo) {
     const cont = document.getElementById('contenido')
-    const main = document.getElementById('main')
 
     if (tipo === 'carrera') {
-        main.style.backgroundImage = "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f')"
         cont.innerHTML = formCarrera()
     }
 
     if (tipo === 'maestro') {
-        main.style.backgroundImage = "url('https://images.unsplash.com/photo-1509062522246-3755977927d7')"
         cont.innerHTML = formMaestro()
     }
 
     if (tipo === 'alumno') {
-        main.style.backgroundImage = "url('https://images.unsplash.com/photo-1513258496099-48168024aec0')"
         cont.innerHTML = formAlumno()
-
         setTimeout(() => {
-            cargarCarreras()
+            cargarCarrerasAlumno()
         }, 100)
     }
 
     if (tipo === 'materia') {
-        main.style.backgroundImage = "url('https://images.unsplash.com/photo-1497633762265-9d179a990aa6')"
         cont.innerHTML = formMateria()
-
         setTimeout(() => {
-            cargarCarreras()
+            cargarCarrerasMateria()
             cargarMaestros()
         }, 100)
     }
 }
 
 // =======================
-// 🔥 FUNCIONES
+// CREAR
 // =======================
 
 async function crearCarrera() {
@@ -209,6 +202,23 @@ async function crearUsuario(rol) {
     })
 
     alert('Usuario creado 🔥')
+}
+
+async function crearMateria() {
+    const nombre = document.getElementById('nombre').value
+    const carreraId = document.getElementById('carrera').value
+    const maestroId = document.getElementById('maestro').value
+
+    await fetch('/materias', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({ nombre, carreraId, maestroId })
+    })
+
+    alert('Materia creada 🔥')
 }
 
 async function crearAlumno() {
@@ -251,54 +261,11 @@ async function crearAlumno() {
     alert('Alumno creado 🔥')
 }
 
-async function crearMateria() {
-    const nombre = document.getElementById('nombre').value
-    const carreraId = document.getElementById('carrera').value
-    const maestroId = document.getElementById('maestro').value
-
-    await fetch('/materias', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
-        body: JSON.stringify({ nombre, carreraId, maestroId })
-    })
-
-    alert('Materia creada 🔥')
-}
-
 // =======================
-// 📦 CARGAR DATOS
+// CARGAR DATOS
 // =======================
 
-async function cargarCarreras() {
-    const res = await fetch('/carreras', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    console.log('CARRERAS:', data)
-
-    const select = document.getElementById('carrera')
-
-    if (!select) {
-        console.error('NO EXISTE SELECT carrera')
-        return
-    }
-
-    select.innerHTML = ''
-
-    data.forEach(c => {
-        const option = document.createElement('option')
-        option.value = c._id
-        option.textContent = c.nombre
-        select.appendChild(option)
-    })
-}
-
-async function cargarCarreras() {
+async function cargarCarrerasAlumno() {
     const res = await fetch('/carreras', {
         headers: { Authorization: token }
     })
@@ -312,12 +279,62 @@ async function cargarCarreras() {
         select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
     })
 
-    // 🔥 ESTA LÍNEA AQUÍ
     select.addEventListener('change', cargarMateriasPorCarrera)
+
+    cargarMateriasPorCarrera()
+}
+
+async function cargarCarrerasMateria() {
+    const res = await fetch('/carreras', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('carrera')
+    select.innerHTML = ''
+
+    data.forEach(c => {
+        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
+    })
+}
+
+async function cargarMateriasPorCarrera() {
+    const carreraId = document.getElementById('carrera').value
+
+    const res = await fetch(`/materias-por-carrera/${carreraId}`, {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('materias')
+    if (!select) return
+
+    select.innerHTML = ''
+
+    data.forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
+}
+
+async function cargarMaestros() {
+    const res = await fetch('/usuarios', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('maestro')
+    select.innerHTML = ''
+
+    data.filter(u => u.rol === 'maestro').forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
 }
 
 // =======================
-// 🔐 LOGOUT
+// LOGOUT
 // =======================
 
 function logout() {
@@ -325,7 +342,10 @@ function logout() {
     window.location.href = '/index.html'
 }
 
-// 🚀 INICIO
+// =======================
+// INICIO
+// =======================
+
 mostrar('carrera')
 </script>
 
