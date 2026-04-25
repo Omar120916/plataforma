@@ -278,6 +278,7 @@ async function cargarCarreras() {
     })
 
     const data = await res.json()
+    console.log(data)
 
     const select = document.getElementById('carrera')
     select.innerHTML = '<option value="">Seleccionar</option>'
