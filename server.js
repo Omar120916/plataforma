@@ -244,6 +244,11 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
     })
 })
 
+app.get('/usuarios', verificarToken, async (req, res) => {
+    const usuarios = await Usuario.find()
+    res.json(usuarios)
+})
+
 // =====================
 // 🚀 SERVER
 // =====================
