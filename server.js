@@ -10,7 +10,7 @@ app.use(express.static('public'))
 
 // 🔥 CONEXIÓN
 mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuela')
-    .then(() => console.log('Conectado a MongoDB'))
+    .then(() => console.log('Conectado a MongoDB 🔥'))
     .catch(err => console.log(err))
 
 // =====================
@@ -25,14 +25,20 @@ const Usuario = mongoose.model('Usuario', {
     alumnoId: mongoose.Schema.Types.ObjectId
 })
 
+const Carrera = mongoose.model('Carrera', {
+    nombre: String
+})
+
 const Materia = mongoose.model('Materia', {
     nombre: String,
-    maestroId: mongoose.Schema.Types.ObjectId
+    maestroId: mongoose.Schema.Types.ObjectId,
+    carreraId: mongoose.Schema.Types.ObjectId
 })
 
 const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
+    carreraId: mongoose.Schema.Types.ObjectId,
     materias: [mongoose.Schema.Types.ObjectId]
 })
 
@@ -107,6 +113,48 @@ app.post('/login', async (req, res) => {
 })
 
 // =====================
+// 🎓 CARRERAS
+// =====================
+
+app.post('/carreras', verificarToken, async (req, res) => {
+    const nueva = new Carrera({ nombre: req.body.nombre })
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/carreras', verificarToken, async (req, res) => {
+    const carreras = await Carrera.find()
+    res.json(carreras)
+})
+
+// =====================
+// 📚 MATERIAS
+// =====================
+
+app.post('/materias', verificarToken, async (req, res) => {
+    const nueva = new Materia({
+        nombre: req.body.nombre,
+        maestroId: new mongoose.Types.ObjectId(req.body.maestroId),
+        carreraId: new mongoose.Types.ObjectId(req.body.carreraId)
+    })
+
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/materias', verificarToken, async (req, res) => {
+    const { carreraId } = req.query
+
+    if (carreraId) {
+        const materias = await Materia.find({ carreraId })
+        return res.json(materias)
+    }
+
+    const materias = await Materia.find()
+    res.json(materias)
+})
+
+// =====================
 // 👨‍🎓 ALUMNOS
 // =====================
 
@@ -116,6 +164,7 @@ app.post('/alumnos', verificarToken, async (req, res) => {
     const nuevo = new Alumno({
         nombre: req.body.nombre,
         edad: req.body.edad,
+        carreraId: new mongoose.Types.ObjectId(req.body.carreraId),
         materias
     })
 
@@ -138,25 +187,6 @@ app.get('/usuarios', verificarToken, async (req, res) => {
 })
 
 // =====================
-// 📚 MATERIAS
-// =====================
-
-app.post('/materias', verificarToken, async (req, res) => {
-    const nueva = new Materia({
-        nombre: req.body.nombre,
-        maestroId: new mongoose.Types.ObjectId(req.body.maestroId)
-    })
-
-    await nueva.save()
-    res.json(nueva)
-})
-
-app.get('/materias', verificarToken, async (req, res) => {
-    const materias = await Materia.find()
-    res.json(materias)
-})
-
-// =====================
 // 👨‍🏫 MAESTRO
 // =====================
 
@@ -167,30 +197,16 @@ app.get('/mis-materias', verificarToken, async (req, res) => {
     res.json(materias)
 })
 
-// alumnos del maestro (🔥 CON materiaId)
-app.get('/mis-alumnos', verificarToken, async (req, res) => {
+// alumnos por materia
+app.get('/alumnos-por-materia/:materiaId', verificarToken, async (req, res) => {
 
-    const id = new mongoose.Types.ObjectId(req.usuario.id)
-    const materias = await Materia.find({ maestroId: id })
+    const materiaId = new mongoose.Types.ObjectId(req.params.materiaId)
 
-    let resultado = []
+    const alumnos = await Alumno.find({
+        materias: materiaId
+    })
 
-    for (let materia of materias) {
-        const alumnos = await Alumno.find({
-            materias: materia._id
-        })
-
-        alumnos.forEach(a => {
-            resultado.push({
-                _id: a._id,
-                nombre: a.nombre,
-                materiaId: materia._id,
-                materiaNombre: materia.nombre // 🔥 NUEVO
-            })
-        })
-    }
-
-    res.json(resultado)
+    res.json(alumnos)
 })
 
 // =====================
@@ -228,8 +244,29 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 })
 
 // =====================
+// 🎓 DASHBOARD ALUMNO
+// =====================
+
+app.get('/mi-alumno', verificarToken, async (req, res) => {
+
+    const alumno = await Alumno.findById(req.usuario.alumnoId)
+
+    const materias = await Materia.find({
+        _id: { $in: alumno.materias }
+    })
+
+    res.json({
+        ...alumno.toObject(),
+        materias
+    })
+})
+
+// =====================
 // 🚀 SERVER
 // =====================
 
-const PORT = 3000
-app.listen(PORT, () => console.log('Servidor corriendo 🔥'))
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, () => {
+    console.log('Servidor corriendo 🔥')
+})
