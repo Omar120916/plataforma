@@ -278,16 +278,24 @@ async function cargarCarreras() {
     })
 
     const data = await res.json()
-    console.log(data)
+
+    console.log('CARRERAS:', data)
 
     const select = document.getElementById('carrera')
-    select.innerHTML = '<option value="">Seleccionar</option>'
+
+    if (!select) {
+        console.error('NO EXISTE SELECT carrera')
+        return
+    }
+
+    select.innerHTML = ''
 
     data.forEach(c => {
-        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
+        const option = document.createElement('option')
+        option.value = c._id
+        option.textContent = c.nombre
+        select.appendChild(option)
     })
-
-    select.addEventListener('change', cargarMateriasPorCarrera)
 }
 
 async function cargarMateriasPorCarrera() {
