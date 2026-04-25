@@ -170,6 +170,18 @@ app.get('/alumnos', verificarToken, async (req, res) => {
     res.json(await Alumno.find())
 })
 
+app.put('/alumnos/:id/materias', verificarToken, async (req, res) => {
+
+    const alumnoId = req.params.id
+    const nuevasMaterias = req.body.materias
+
+    await Alumno.findByIdAndUpdate(alumnoId, {
+        $addToSet: { materias: { $each: nuevasMaterias } }
+    })
+
+    res.json({ mensaje: 'Materias agregadas 🔥' })
+})
+
 // =====================
 // 👨‍🏫 MAESTRO
 // =====================

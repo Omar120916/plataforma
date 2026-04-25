@@ -75,6 +75,7 @@ Cerrar Sesión
     <button onclick="mostrar('materia')">📚 Materias</button>
     <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
+    <button onclick="mostrar('asignar')">🧩 Asignar materias</button>
 </div>
 
 <div class="main" id="main">
@@ -137,6 +138,20 @@ function formMateria() {
     `
 }
 
+function formAsignar() {
+    return `
+        <h4 class="text-center mb-3">Asignar Materias</h4>
+
+        <select id="alumno" class="form-select mb-2"></select>
+
+        <select id="materias" class="form-select mb-3" multiple></select>
+
+        <button class="btn btn-warning w-100" onclick="asignarMaterias()">
+            Asignar
+        </button>
+    `
+}
+
 // =======================
 // CAMBIAR VISTA
 // =======================
@@ -166,6 +181,15 @@ function mostrar(tipo) {
             cargarMaestros()
         }, 100)
     }
+
+    if (tipo === 'asignar') {
+    cont.innerHTML = formAsignar()
+
+    setTimeout(() => {
+        cargarAlumnos()
+        cargarMaterias()
+    }, 100)
+}
 }
 
 // =======================
@@ -331,6 +355,62 @@ async function cargarMaestros() {
     data.filter(u => u.rol === 'maestro').forEach(m => {
         select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
     })
+}
+
+async function cargarAlumnos() {
+    const res = await fetch('/alumnos', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('alumno')
+
+    // 🔴 IMPORTANTE: valida que exista
+    if (!select) {
+        console.error('No existe select alumno')
+        return
+    }
+
+    select.innerHTML = ''
+
+    data.forEach(a => {
+        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
+    })
+}
+
+async function cargarMaterias() {
+    const res = await fetch('/materias', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('materias')
+    select.innerHTML = ''
+
+    data.forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
+}
+
+async function asignarMaterias() {
+    const alumnoId = document.getElementById('alumno').value
+
+    const materias = Array.from(
+        document.getElementById('materias').selectedOptions
+    ).map(o => o.value)
+
+    await fetch(`/alumnos/${alumnoId}/materias`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({ materias })
+    })
+
+    alert('Materias asignadas 🔥')
 }
 
 // =======================
