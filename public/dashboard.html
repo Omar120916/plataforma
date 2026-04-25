@@ -298,38 +298,22 @@ async function cargarCarreras() {
     })
 }
 
-async function cargarMateriasPorCarrera() {
-    const carreraId = document.getElementById('carrera').value
-
-    const res = await fetch('/materias?carreraId=' + carreraId, {
+async function cargarCarreras() {
+    const res = await fetch('/carreras', {
         headers: { Authorization: token }
     })
 
     const data = await res.json()
 
-    const select = document.getElementById('materias')
-    if (!select) return
-
+    const select = document.getElementById('carrera')
     select.innerHTML = ''
 
-    data.forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
-}
-
-async function cargarMaestros() {
-    const res = await fetch('/usuarios', {
-        headers: { Authorization: token }
+    data.forEach(c => {
+        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
     })
 
-    const data = await res.json()
-
-    const select = document.getElementById('maestro')
-    select.innerHTML = ''
-
-    data.filter(u => u.rol === 'maestro').forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
+    // 🔥 ESTA LÍNEA AQUÍ
+    select.addEventListener('change', cargarMateriasPorCarrera)
 }
 
 // =======================
