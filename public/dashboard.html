@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Admin</title>
+<title>Admin</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body { margin: 0; }
+body { margin: 0; font-family: 'Segoe UI'; }
 
+/* SIDEBAR */
 .sidebar {
     height: 100vh;
     width: 220px;
@@ -18,8 +19,6 @@ body { margin: 0; }
     color: white;
     padding-top: 20px;
 }
-
-.sidebar h4 { text-align: center; }
 
 .sidebar button {
     width: 100%;
@@ -34,40 +33,34 @@ body { margin: 0; }
     background: rgba(255,255,255,0.2);
 }
 
+/* MAIN */
 .main {
     margin-left: 220px;
-    min-height: 100vh;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 20px;
 }
 
+/* CARD */
 .card-form {
-    background: rgba(255,255,255,0.95);
-    padding: 30px;
+    background: white;
+    padding: 25px;
     border-radius: 15px;
+    max-width: 450px;
     width: 100%;
-    max-width: 420px;
 }
 </style>
 </head>
 
 <body>
 
-<button onclick="logout()" class="btn btn-danger btn-sm" style="position:fixed; top: 20px; right: 20px;">
-Cerrar sesión
-</button>
-
+<!-- SIDEBAR -->
 <div class="sidebar">
-    <h4>🎓 Admin</h4>
-    <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
-    <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
-    <button onclick="mostrar('padre')">👨‍👦 Papás</button>
+    <h4 class="text-center">🎓 Admin</h4>
+    <button onclick="mostrar('carrera')">🎓 Carreras</button>
     <button onclick="mostrar('materia')">📚 Materias</button>
+    <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
 </div>
 
+<!-- MAIN -->
 <div class="main">
     <div id="contenido" class="card-form shadow"></div>
 </div>
@@ -75,202 +68,126 @@ Cerrar sesión
 <script>
 const token = localStorage.getItem('token')
 
+// =====================
+// 🔄 CAMBIAR VISTA
+// =====================
+
+function mostrar(tipo) {
+    const cont = document.getElementById('contenido')
+
+    if (tipo === 'carrera') cont.innerHTML = formCarrera()
+    if (tipo === 'materia') {
+        cont.innerHTML = formMateria()
+        setTimeout(() => {
+            cargarCarreras()
+            cargarMaestros()
+        }, 100)
+    }
+    if (tipo === 'alumno') {
+        cont.innerHTML = formAlumno()
+        setTimeout(() => {
+            cargarCarreras()
+        }, 100)
+    }
+}
+
+// =====================
 // 🧩 FORMULARIOS
-function formMaestro() {
+// =====================
+
+function formCarrera() {
     return `
-        <h4 class="text-center mb-3">Registrar Maestro</h4>
-        <input id="nombre" class="form-control mb-2" placeholder="Nombre completo">
-        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
-        <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
-    `
-}
-
-function formAlumno() {
-    return `
-        <h4 class="text-center mb-3">Registrar Alumno</h4>
-
-        <input id="nombre" class="form-control mb-2" placeholder="Nombre">
-        <input id="grado" class="form-control mb-2" placeholder="Grado">
-
-        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
-
-        <select id="materias" class="form-select mb-3" multiple></select>
-
-        <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
-    `
-}
-
-function formPadre() {
-    return `
-        <h4 class="text-center mb-3">Registrar Papá</h4>
-
-        <input id="nombre" class="form-control mb-2" placeholder="Nombre completo">
-        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
-        <input id="password" type="password" class="form-control mb-2" placeholder="Contraseña">
-
-        <select id="alumnoId" class="form-select mb-3"></select>
-
-        <button class="btn btn-warning w-100" onclick="crearUsuario('padre')">Registrar</button>
+        <h4>Crear Carrera</h4>
+        <input id="nombre" class="form-control mb-3" placeholder="Nombre carrera">
+        <button class="btn btn-primary w-100" onclick="crearCarrera()">Guardar</button>
     `
 }
 
 function formMateria() {
     return `
-        <h4 class="text-center mb-3">Crear Materia</h4>
+        <h4>Crear Materia</h4>
 
-        <input id="nombre" class="form-control mb-2" placeholder="Nombre (Ej: Inglés)">
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre materia">
 
-        <select id="maestro" class="form-select mb-3">
-            <option value="">Seleccionar maestro</option>
-        </select>
+        <select id="carrera" class="form-select mb-2"></select>
 
-        <button class="btn btn-info w-100" onclick="crearMateria()">Crear</button>
+        <select id="maestro" class="form-select mb-3"></select>
+
+        <button class="btn btn-success w-100" onclick="crearMateria()">Guardar</button>
     `
 }
 
-// 🔄 CAMBIAR SECCIÓN
-function mostrar(tipo) {
-    const cont = document.getElementById('contenido')
-    const main = document.querySelector('.main')
+function formAlumno() {
+    return `
+        <h4>Crear Alumno</h4>
 
-    if (tipo === 'maestro') {
-        main.style.backgroundImage = "url('/img/fondo1.jpeg')"
-        cont.innerHTML = formMaestro()
-    }
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+        <input id="edad" class="form-control mb-2" placeholder="Edad">
 
-    if (tipo === 'alumno') {
-        main.style.backgroundImage = "url('/img/fondo3.jpeg')"
-        cont.innerHTML = formAlumno()
+        <select id="carrera" class="form-select mb-2" onchange="cargarMaterias()"></select>
 
-        requestAnimationFrame(() => {
-            cargarMaterias()
-        })
-    }
+        <select id="materias" class="form-select mb-3" multiple></select>
 
-    if (tipo === 'padre') {
-        main.style.backgroundImage = "url('/img/fondo2.jpeg')"
-        cont.innerHTML = formPadre()
-
-        requestAnimationFrame(() => {
-            cargarAlumnos()
-        })
-    }
-
-    if (tipo === 'materia') {
-        main.style.backgroundImage = "url('/img/fondo4.jpeg')"
-        cont.innerHTML = formMateria()
-
-        requestAnimationFrame(() => {
-            cargarMaestros()
-        })
-    }
+        <button class="btn btn-warning w-100" onclick="crearAlumno()">Guardar</button>
+    `
 }
 
-// 🔐 CREAR USUARIO
-async function crearUsuario(rol) {
-    const nombre = document.getElementById('nombre')?.value
-    const usuario = document.getElementById('usuario').value
-    const password = document.getElementById('password').value
-    const alumnoId = document.getElementById('alumnoId')?.value
+// =====================
+// 🎓 CARRERAS
+// =====================
 
-    const res = await fetch('/registro', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token
-        },
-        body: JSON.stringify({ nombre, usuario, password, rol, alumnoId })
-    })
-
-    const data = await res.json()
-    alert(data.mensaje)
-}
-
-// 👨‍🎓 CREAR ALUMNO
-async function crearAlumno() {
+async function crearCarrera() {
     const nombre = document.getElementById('nombre').value
-    const edad = document.getElementById('grado').value
-    const materias = Array.from(document.getElementById('materias').selectedOptions)
-        .map(opt => opt.value)
 
-    const usuario = document.getElementById('usuario').value
-    const password = document.getElementById('password').value
-
-    const resAlumno = await fetch('/alumnos', {
+    await fetch('/carreras', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token
-        },
-        body: JSON.stringify({ nombre, edad, materias })
+        headers: { 'Content-Type': 'application/json', Authorization: token },
+        body: JSON.stringify({ nombre })
     })
 
-    const alumno = await resAlumno.json()
-
-    await fetch('/registro', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token
-        },
-        body: JSON.stringify({
-            nombre,
-            usuario,
-            password,
-            rol: 'alumno',
-            alumnoId: alumno._id
-        })
-    })
-
-    alert('Alumno y usuario creados 🔥')
+    alert('Carrera creada 🔥')
 }
 
-// 👨‍🏫 CARGAR MAESTROS
-async function cargarMaestros() {
-    const select = document.getElementById('maestro')
-    if (!select) return
-
-    const res = await fetch('/usuarios', {
+async function cargarCarreras() {
+    const res = await fetch('/carreras', {
         headers: { Authorization: token }
     })
 
     const data = await res.json()
 
-    select.innerHTML = '<option value="">Seleccionar maestro</option>'
-
-    data
-        .filter(u => u.rol?.toLowerCase() === 'maestro')
-        .forEach(m => {
-            select.innerHTML += `<option value="${m._id}">${m.nombre || m.usuario}</option>`
-        })
-}
-
-// 👨‍🎓 CARGAR ALUMNOS
-async function cargarAlumnos() {
-    const select = document.getElementById('alumnoId')
-    if (!select) return
-
-    const res = await fetch('/alumnos', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
+    const select = document.getElementById('carrera')
     select.innerHTML = ''
 
-    data.forEach(a => {
-        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
+    data.forEach(c => {
+        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
     })
 }
 
-// 📚 CARGAR MATERIAS
-async function cargarMaterias() {
-    const select = document.getElementById('materias')
-    if (!select) return
+// =====================
+// 📚 MATERIAS
+// =====================
 
-    const res = await fetch('/materias', {
+async function crearMateria() {
+    const nombre = document.getElementById('nombre').value
+    const maestroId = document.getElementById('maestro').value
+    const carreraId = document.getElementById('carrera').value
+
+    await fetch('/materias', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: token },
+        body: JSON.stringify({ nombre, maestroId, carreraId })
+    })
+
+    alert('Materia creada 🔥')
+}
+
+async function cargarMaterias() {
+    const carreraId = document.getElementById('carrera').value
+    const select = document.getElementById('materias')
+
+    if (!carreraId) return
+
+    const res = await fetch(`/materias?carreraId=${carreraId}`, {
         headers: { Authorization: token }
     })
 
@@ -283,34 +200,54 @@ async function cargarMaterias() {
     })
 }
 
-// 📚 CREAR MATERIA
-async function crearMateria() {
-    const nombre = document.getElementById('nombre').value
-    const maestroId = document.getElementById('maestro').value
+// =====================
+// 👨‍🏫 MAESTROS
+// =====================
 
-    await fetch('/materias', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': token
-        },
-        body: JSON.stringify({ nombre, maestroId })
+async function cargarMaestros() {
+    const res = await fetch('/usuarios', {
+        headers: { Authorization: token }
     })
 
-    alert('Materia creada 🔥')
-    mostrar('materia')
+    const data = await res.json()
+
+    const select = document.getElementById('maestro')
+    select.innerHTML = ''
+
+    data
+        .filter(u => u.rol === 'maestro')
+        .forEach(m => {
+            select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+        })
 }
 
-// 🚪 LOGOUT
-function logout() {
-    if (confirm('¿Cerrar sesión?')) {
-        localStorage.removeItem('token')
-        window.location.href = '/index.html'
-    }
+// =====================
+// 👨‍🎓 ALUMNOS
+// =====================
+
+async function crearAlumno() {
+    const nombre = document.getElementById('nombre').value
+    const edad = document.getElementById('edad').value
+    const carreraId = document.getElementById('carrera').value
+
+    const materias = Array.from(
+        document.getElementById('materias').selectedOptions
+    ).map(opt => opt.value)
+
+    await fetch('/alumnos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: token },
+        body: JSON.stringify({ nombre, edad, carreraId, materias })
+    })
+
+    alert('Alumno creado 🔥')
 }
 
+// =====================
 // 🚀 INICIO
-mostrar('maestro')
+// =====================
+
+mostrar('carrera')
 </script>
 
 </body>
