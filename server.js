@@ -181,18 +181,24 @@ app.get('/mis-materias', verificarToken, async (req, res) => {
 
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const materias = await Materia.find({ maestroId: req.usuario.id })
+    const maestroId = new mongoose.Types.ObjectId(req.usuario.id)
+
+    const materias = await Materia.find({ maestroId })
 
     let resultado = []
 
     for (let materia of materias) {
-        const alumnos = await Alumno.find({ materias: materia._id })
+
+        const alumnos = await Alumno.find({
+            materias: materia._id
+        })
 
         alumnos.forEach(a => {
             resultado.push({
                 _id: a._id,
                 nombre: a.nombre,
-                materiaId: materia._id
+                materiaId: materia._id,
+                materiaNombre: materia.nombre // 🔥 CLAVE
             })
         })
     }

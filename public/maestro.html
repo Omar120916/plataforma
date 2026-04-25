@@ -214,7 +214,7 @@ async function cargarAlumnos() {
 
     let agrupado = {}
 
-    // 🔥 AGRUPAR POR MATERIA
+    // agrupar por materia
     data.forEach(a => {
         if (!agrupado[a.materiaNombre]) {
             agrupado[a.materiaNombre] = []
@@ -224,24 +224,23 @@ async function cargarAlumnos() {
 
     let html = '<h3>Mis alumnos</h3>'
 
-    // 🔥 PINTAR POR MATERIA
     for (let materia in agrupado) {
-        html += `<h5 class="mt-4">📚 ${materia}</h5>`
+
+        html += `<h5 class="mt-3">📚 ${materia}</h5>`
 
         agrupado[materia].forEach(a => {
             html += `
             <div class="card p-3 mb-2">
                 ${a.nombre}
-
-                <input type="number" placeholder="Calificación"
-                    id="cal-${a._id}-${a.materiaId}"
-                    class="form-control my-2">
+                <input type="number" id="cal-${a._id}-${a.materiaId}" 
+                class="form-control my-2" placeholder="Calificación">
 
                 <button class="btn btn-primary btn-sm"
-                    onclick="guardarCal('${a._id}', '${a.materiaId}')">
-                    Guardar
+                onclick="guardarCal('${a._id}','${a.materiaId}')">
+                Guardar
                 </button>
-            </div>`
+            </div>
+            `
         })
     }
 
