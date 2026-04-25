@@ -25,20 +25,14 @@ const Usuario = mongoose.model('Usuario', {
     alumnoId: mongoose.Schema.Types.ObjectId
 })
 
-const Carrera = mongoose.model('Carrera', {
-    nombre: String
-})
-
 const Materia = mongoose.model('Materia', {
     nombre: String,
-    maestroId: mongoose.Schema.Types.ObjectId,
-    carreraId: mongoose.Schema.Types.ObjectId
+    maestroId: mongoose.Schema.Types.ObjectId
 })
 
 const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
-    carreraId: mongoose.Schema.Types.ObjectId,
     materias: [mongoose.Schema.Types.ObjectId]
 })
 
@@ -113,61 +107,18 @@ app.post('/login', async (req, res) => {
 })
 
 // =====================
-// 🎓 CARRERAS
-// =====================
-
-app.post('/carreras', verificarToken, async (req, res) => {
-    const nueva = new Carrera({ nombre: req.body.nombre })
-    await nueva.save()
-    res.json(nueva)
-})
-
-app.get('/carreras', verificarToken, async (req, res) => {
-    const carreras = await Carrera.find()
-    res.json(carreras)
-})
-
-// =====================
-// 📚 MATERIAS
-// =====================
-
-app.post('/materias', verificarToken, async (req, res) => {
-    const nueva = new Materia({
-        nombre: req.body.nombre,
-        maestroId: new mongoose.Types.ObjectId(req.body.maestroId),
-        carreraId: new mongoose.Types.ObjectId(req.body.carreraId)
-    })
-
-    await nueva.save()
-    res.json(nueva)
-})
-
-app.get('/materias', verificarToken, async (req, res) => {
-
-    const { carreraId } = req.query
-
-    if (carreraId) {
-        const materias = await Materia.find({
-            carreraId: new mongoose.Types.ObjectId(carreraId)
-        })
-        return res.json(materias)
-    }
-
-    const materias = await Materia.find()
-    res.json(materias)
-})
-
-// =====================
 // 👨‍🎓 ALUMNOS
 // =====================
 
 app.post('/alumnos', verificarToken, async (req, res) => {
-    const materias = (req.body.materias || []).map(id => new mongoose.Types.ObjectId(id))
+
+    const materias = (req.body.materias || []).map(id =>
+        new mongoose.Types.ObjectId(id)
+    )
 
     const nuevo = new Alumno({
         nombre: req.body.nombre,
         edad: req.body.edad,
-        carreraId: new mongoose.Types.ObjectId(req.body.carreraId),
         materias
     })
 
@@ -190,33 +141,71 @@ app.get('/usuarios', verificarToken, async (req, res) => {
 })
 
 // =====================
-// 👨‍🏫 MAESTRO
+// 📚 MATERIAS
 // =====================
 
-// materias del maestro
-app.get('/mis-materias', verificarToken, async (req, res) => {
-    const id = new mongoose.Types.ObjectId(req.usuario.id)
-    const materias = await Materia.find({ maestroId: id })
+app.post('/materias', verificarToken, async (req, res) => {
+
+    const nueva = new Materia({
+        nombre: req.body.nombre,
+        maestroId: new mongoose.Types.ObjectId(req.body.maestroId)
+    })
+
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/materias', verificarToken, async (req, res) => {
+    const materias = await Materia.find()
     res.json(materias)
 })
 
-// alumnos por materia
-app.get('/alumnos-por-materia/:materiaId', verificarToken, async (req, res) => {
+// =====================
+// 👨‍🏫 MAESTRO (FIX REAL 🔥)
+// =====================
 
-    const materiaId = new mongoose.Types.ObjectId(req.params.materiaId)
+app.get('/mis-materias', verificarToken, async (req, res) => {
 
-    const alumnos = await Alumno.find({
-        materias: materiaId
+    const materias = await Materia.find({
+        maestroId: new mongoose.Types.ObjectId(req.usuario.id)
     })
 
-    res.json(alumnos)
+    res.json(materias)
+})
+
+app.get('/mis-alumnos', verificarToken, async (req, res) => {
+
+    const materias = await Materia.find({
+        maestroId: new mongoose.Types.ObjectId(req.usuario.id)
+    })
+
+    let resultado = []
+
+    for (let materia of materias) {
+
+        const alumnos = await Alumno.find({
+            materias: materia._id
+        })
+
+        alumnos.forEach(a => {
+            resultado.push({
+                _id: a._id,
+                nombre: a.nombre,
+                materiaId: materia._id, // 🔥 CLAVE
+                materiaNombre: materia.nombre
+            })
+        })
+    }
+
+    res.json(resultado)
 })
 
 // =====================
-// 📝 CALIFICACIONES
+// 📝 CALIFICACIONES (FIX 🔥)
 // =====================
 
 app.post('/calificaciones', verificarToken, async (req, res) => {
+
     const nueva = new Calificacion({
         alumnoId: new mongoose.Types.ObjectId(req.body.alumnoId),
         materiaId: new mongoose.Types.ObjectId(req.body.materiaId),
@@ -236,7 +225,10 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
     const materias = await Materia.find()
 
     const resultado = califs.map(c => {
-        const materia = materias.find(m => m._id.toString() === c.materiaId.toString())
+        const materia = materias.find(m =>
+            m._id.toString() === c.materiaId.toString()
+        )
+
         return {
             materia: materia?.nombre,
             calificacion: c.calificacion
@@ -265,28 +257,8 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
 })
 
 // =====================
-// 🎓 CARRERAS
-// =====================
-
-app.post('/carreras', verificarToken, async (req, res) => {
-    const nueva = new Carrera({
-        nombre: req.body.nombre
-    })
-
-    await nueva.save()
-    res.json(nueva)
-})
-
-app.get('/carreras', verificarToken, async (req, res) => {
-    const carreras = await Carrera.find()
-    res.json(carreras)
-})
-// =====================
 // 🚀 SERVER
 // =====================
 
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT, () => {
-    console.log('Servidor corriendo 🔥')
-})
+const PORT = 3000
+app.listen(PORT, () => console.log('Servidor corriendo 🔥'))
