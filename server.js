@@ -143,10 +143,13 @@ app.post('/materias', verificarToken, async (req, res) => {
 })
 
 app.get('/materias', verificarToken, async (req, res) => {
+
     const { carreraId } = req.query
 
     if (carreraId) {
-        const materias = await Materia.find({ carreraId })
+        const materias = await Materia.find({
+            carreraId: new mongoose.Types.ObjectId(carreraId)
+        })
         return res.json(materias)
     }
 
@@ -261,6 +264,23 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
     })
 })
 
+// =====================
+// 🎓 CARRERAS
+// =====================
+
+app.post('/carreras', verificarToken, async (req, res) => {
+    const nueva = new Carrera({
+        nombre: req.body.nombre
+    })
+
+    await nueva.save()
+    res.json(nueva)
+})
+
+app.get('/carreras', verificarToken, async (req, res) => {
+    const carreras = await Carrera.find()
+    res.json(carreras)
+})
 // =====================
 // 🚀 SERVER
 // =====================
