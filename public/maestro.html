@@ -120,6 +120,16 @@ body.light .card {
         margin-left: 0;
         padding-top: 60px;
     }
+
+    .card h5 {
+    font-weight: bold;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    }
+
+input.form-control-sm {
+    font-size: 0.85rem;
+    }
 }
 </style>
 </head>
@@ -222,29 +232,43 @@ async function cargarAlumnos() {
         agrupado[a.materiaNombre].push(a)
     })
 
-    let html = '<h3>Mis alumnos</h3>'
+    let html = '<h3>Mis alumnos</h3><div class="row">'
 
-    for (let materia in agrupado) {
+const materiasMap = {}
 
-        html += `<h5 class="mt-3">📚 ${materia}</h5>`
+data.forEach(a => {
+    if (!materiasMap[a.materiaNombre]) {
+        materiasMap[a.materiaNombre] = []
+    }
+    materiasMap[a.materiaNombre].push(a)
+})
 
-        agrupado[materia].forEach(a => {
-            html += `
-            <div class="card p-3 mb-2">
-                ${a.nombre}
-                <input type="number" id="cal-${a._id}-${a.materiaId}" 
-                class="form-control my-2" placeholder="Calificación">
+for (let materia in materiasMap) {
+    html += `
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 shadow-sm">
+            <h5 class="mb-3">📚 ${materia}</h5>
+    `
 
-                <button class="btn btn-primary btn-sm"
+    materiasMap[materia].forEach(a => {
+        html += `
+        <div class="mb-2">
+            <small>${a.nombre}</small>
+            <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}" placeholder="Calificación">
+            <button class="btn btn-primary btn-sm w-100"
                 onclick="guardarCal('${a._id}','${a.materiaId}')">
                 Guardar
-                </button>
-            </div>
-            `
-        })
-    }
+            </button>
+        </div>
+        `
+    })
 
-    document.getElementById('contenido').innerHTML = html
+    html += `</div></div>`
+}
+
+html += '</div>'
+
+document.getElementById('contenido').innerHTML = html
 }
 
 // 💾 GUARDAR CALIFICACIÓN
