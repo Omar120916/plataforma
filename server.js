@@ -184,7 +184,8 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
             resultado.push({
                 _id: a._id,
                 nombre: a.nombre,
-                materiaId: materia._id
+                materiaId: materia._id,
+                materiaNombre: materia.nombre // 🔥 NUEVO
             })
         })
     }
