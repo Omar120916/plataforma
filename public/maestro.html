@@ -164,6 +164,15 @@ input.form-control-sm {
 <script>
 const token = localStorage.getItem('token')
 
+if (!token) {
+    window.location.href = '/index.html'
+}
+
+history.pushState(null, null, location.href)
+window.onpopstate = function () {
+    history.go(1)
+}
+
 // 🔥 CARGAR TEMA BIEN
 window.onload = () => {
     const theme = localStorage.getItem('theme') || 'dark'

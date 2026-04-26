@@ -169,7 +169,17 @@ body.light .card {
 <div class="main" id="contenido"></div>
 
 <script>
+    
 const token = localStorage.getItem('token')
+
+if (!token) {
+    window.location.href = '/index.html'
+}
+
+history.pushState(null, null, location.href)
+window.onpopstate = function () {
+    history.go(1)
+}
 
 // 🔥 CARGAR TEMA AL INICIO (CORREGIDO)
 window.onload = () => {

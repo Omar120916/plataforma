@@ -85,6 +85,15 @@ Cerrar Sesión
 <script>
 const token = localStorage.getItem('token')
 
+if (!token) {
+    window.location.href = '/index.html'
+}
+
+history.pushState(null, null, location.href)
+window.onpopstate = function () {
+    history.go(1)
+}
+
 // =======================
 // FORMULARIOS
 // =======================

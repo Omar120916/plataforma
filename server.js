@@ -271,6 +271,11 @@ app.get('/usuarios', verificarToken, async (req, res) => {
     res.json(usuarios)
 })
 
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store')
+    next()
+})
+
 // =====================
 // 🚀 SERVER
 // =====================
