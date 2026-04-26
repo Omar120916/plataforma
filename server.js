@@ -39,6 +39,7 @@ const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
     carreraId: mongoose.Schema.Types.ObjectId,
+    grupo: String,
     materias: [mongoose.Schema.Types.ObjectId]
 })
 
@@ -155,11 +156,15 @@ app.get('/materias-por-carrera/:id', verificarToken, async (req, res) => {
 // =====================
 
 app.post('/alumnos', verificarToken, async (req, res) => {
+
+    const materias = (req.body.materias || []).map(id => new mongoose.Types.ObjectId(id))
+
     const nuevo = new Alumno({
         nombre: req.body.nombre,
         edad: req.body.edad,
         carreraId: req.body.carreraId,
-        materias: req.body.materias
+        grupo: req.body.grupo, // 🔥 AQUÍ
+        materias
     })
 
     await nuevo.save()
@@ -209,6 +214,7 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
             resultado.push({
                 _id: a._id,
                 nombre: a.nombre,
+                grupo: a.grupo,
                 materiaId: materia._id,
                 materiaNombre: materia.nombre // 🔥 CLAVE
             })

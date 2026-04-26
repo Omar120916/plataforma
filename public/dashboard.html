@@ -121,6 +121,8 @@ function formAlumno() {
         <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
         <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
+
+        <input id="grupo" class="form-control mb-2" placeholder="Grupo (Ej: A, B, 11-1)">
     `
 }
 
@@ -255,6 +257,7 @@ async function crearAlumno() {
 
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
+    const grupo = document.getElementById('grupo').value
 
     const res = await fetch('/alumnos', {
         method: 'POST',

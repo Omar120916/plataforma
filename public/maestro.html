@@ -222,53 +222,53 @@ async function cargarAlumnos() {
 
     const data = await res.json()
 
-    let agrupado = {}
+    const mapa = {}
 
-    // agrupar por materia
     data.forEach(a => {
-        if (!agrupado[a.materiaNombre]) {
-            agrupado[a.materiaNombre] = []
+        const key = a.materiaNombre + '-' + a.grupo
+
+        if (!mapa[key]) {
+            mapa[key] = {
+                materia: a.materiaNombre,
+                grupo: a.grupo,
+                alumnos: []
+            }
         }
-        agrupado[a.materiaNombre].push(a)
+
+        mapa[key].alumnos.push(a)
     })
 
     let html = '<h3>Mis alumnos</h3><div class="row">'
 
-const materiasMap = {}
+    for (let key in mapa) {
+        const bloque = mapa[key]
 
-data.forEach(a => {
-    if (!materiasMap[a.materiaNombre]) {
-        materiasMap[a.materiaNombre] = []
-    }
-    materiasMap[a.materiaNombre].push(a)
-})
-
-for (let materia in materiasMap) {
-    html += `
-    <div class="col-md-4">
-        <div class="card p-3 mb-3 shadow-sm">
-            <h5 class="mb-3">📚 ${materia}</h5>
-    `
-
-    materiasMap[materia].forEach(a => {
         html += `
-        <div class="mb-2">
-            <small>${a.nombre}</small>
-            <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}" placeholder="Calificación">
-            <button class="btn btn-primary btn-sm w-100"
-                onclick="guardarCal('${a._id}','${a.materiaId}')">
-                Guardar
-            </button>
-        </div>
+        <div class="col-md-4">
+            <div class="card p-3 mb-3">
+                <h5>📚 ${bloque.materia}</h5>
+                <small class="text-muted">Grupo ${bloque.grupo}</small>
         `
-    })
 
-    html += `</div></div>`
-}
+        bloque.alumnos.forEach(a => {
+            html += `
+            <div class="mb-2">
+                <small>${a.nombre}</small>
+                <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}">
+                <button class="btn btn-primary btn-sm w-100"
+                    onclick="guardarCal('${a._id}','${a.materiaId}')">
+                    Guardar
+                </button>
+            </div>
+            `
+        })
 
-html += '</div>'
+        html += `</div></div>`
+    }
 
-document.getElementById('contenido').innerHTML = html
+    html += '</div>'
+
+    document.getElementById('contenido').innerHTML = html
 }
 
 // 💾 GUARDAR CALIFICACIÓN
