@@ -120,9 +120,11 @@ function formAlumno() {
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
         <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
 
+        <input id="grupo" class="form-control mb-2" placeholder="Grupo (Ej: A, B, 11-1)">
+        
         <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
 
-        <input id="grupo" class="form-control mb-2" placeholder="Grupo (Ej: A, B, 11-1)">
+        
     `
 }
 
@@ -250,6 +252,7 @@ async function crearMateria() {
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
     const carreraId = document.getElementById('carrera').value
+    const grupo = document.getElementById('grupo').value // 🔥 NUEVO
 
     const materias = Array.from(
         document.getElementById('materias').selectedOptions
@@ -257,19 +260,27 @@ async function crearAlumno() {
 
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
-    const grupo = document.getElementById('grupo').value
 
+    console.log(nombre, carreraId, grupo, materias) // 🔍 DEBUG
+
+    // 🔥 CREAR ALUMNO
     const res = await fetch('/alumnos', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             Authorization: token
         },
-        body: JSON.stringify({ nombre, carreraId, materias })
+        body: JSON.stringify({
+            nombre,
+            carreraId,
+            grupo, // 🔥 AQUÍ VA
+            materias
+        })
     })
 
     const alumno = await res.json()
 
+    // 🔥 CREAR USUARIO DEL ALUMNO
     await fetch('/registro', {
         method: 'POST',
         headers: {

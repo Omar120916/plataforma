@@ -198,14 +198,12 @@ app.get('/mis-materias', verificarToken, async (req, res) => {
 
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const maestroId = new mongoose.Types.ObjectId(req.usuario.id)
-
-    const materias = await Materia.find({ maestroId })
+    const id = new mongoose.Types.ObjectId(req.usuario.id)
+    const materias = await Materia.find({ maestroId: id })
 
     let resultado = []
 
     for (let materia of materias) {
-
         const alumnos = await Alumno.find({
             materias: materia._id
         })
@@ -214,9 +212,9 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
             resultado.push({
                 _id: a._id,
                 nombre: a.nombre,
-                grupo: a.grupo,
+                grupo: a.grupo, // 🔥 ESTA LÍNEA ES LA CLAVE
                 materiaId: materia._id,
-                materiaNombre: materia.nombre // 🔥 CLAVE
+                materiaNombre: materia.nombre
             })
         })
     }
