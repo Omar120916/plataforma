@@ -76,6 +76,7 @@ Cerrar Sesión
     <button onclick="mostrar('maestro')">👨‍🏫 Maestros</button>
     <button onclick="mostrar('alumno')">👨‍🎓 Alumnos</button>
     <button onclick="mostrar('asignar')">🧩 Asignar materias</button>
+    <button onclick="mostrar('padre')">👨‍👩‍👧 Padres</button>
 </div>
 
 <div class="main" id="main">
@@ -163,6 +164,21 @@ function formAsignar() {
             Asignar
         </button>
     `
+
+    function formPadre() {
+    return `
+        <h4 class="text-center mb-3">Registrar Padre</h4>
+
+        <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+
+        <select id="alumno" class="form-select mb-2"></select>
+
+        <input id="usuario" class="form-control mb-2" placeholder="Usuario">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
+
+        <button class="btn btn-warning w-100" onclick="crearPadre()">Registrar</button>
+    `
+    }
 }
 
 // =======================
@@ -434,6 +450,45 @@ async function asignarMaterias() {
     })
 
     alert('Materias asignadas 🔥')
+}
+
+async function cargarAlumnosSelect() {
+    const res = await fetch('/alumnos', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    const select = document.getElementById('alumno')
+    select.innerHTML = ''
+
+    data.forEach(a => {
+        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
+    })
+}
+
+async function crearPadre() {
+    const nombre = document.getElementById('nombre').value
+    const alumnoId = document.getElementById('alumno').value
+    const usuario = document.getElementById('usuario').value
+    const password = document.getElementById('password').value
+
+    await fetch('/registro', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nombre,
+            usuario,
+            password,
+            rol: 'padre',
+            alumnoId
+        })
+    })
+
+    alert('Padre registrado 🔥')
 }
 
 // =======================
