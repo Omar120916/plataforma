@@ -133,8 +133,6 @@ function formAlumno() {
         <input id="grupo" class="form-control mb-2" placeholder="Grupo (Ej: A, B, 11-1)">
         
         <button class="btn btn-success w-100" onclick="crearAlumno()">Registrar</button>
-
-        
     `
 }
 
@@ -164,8 +162,9 @@ function formAsignar() {
             Asignar
         </button>
     `
+}
 
-    function formPadre() {
+function formPadre() {
     return `
         <h4 class="text-center mb-3">Registrar Padre</h4>
 
@@ -178,29 +177,22 @@ function formAsignar() {
 
         <button class="btn btn-warning w-100" onclick="crearPadre()">Registrar</button>
     `
-    }
 }
 
 // =======================
-// CAMBIAR VISTA
+// VISTAS
 // =======================
 
 function mostrar(tipo) {
     const cont = document.getElementById('contenido')
 
-    if (tipo === 'carrera') {
-        cont.innerHTML = formCarrera()
-    }
+    if (tipo === 'carrera') cont.innerHTML = formCarrera()
 
-    if (tipo === 'maestro') {
-        cont.innerHTML = formMaestro()
-    }
+    if (tipo === 'maestro') cont.innerHTML = formMaestro()
 
     if (tipo === 'alumno') {
         cont.innerHTML = formAlumno()
-        setTimeout(() => {
-            cargarCarrerasAlumno()
-        }, 100)
+        setTimeout(() => cargarCarrerasAlumno(), 100)
     }
 
     if (tipo === 'materia') {
@@ -212,31 +204,30 @@ function mostrar(tipo) {
     }
 
     if (tipo === 'asignar') {
-    cont.innerHTML = formAsignar()
+        cont.innerHTML = formAsignar()
+        setTimeout(() => {
+            cargarAlumnos()
+            cargarMaterias()
+        }, 100)
+    }
 
-    setTimeout(() => {
-        cargarAlumnos()
-        cargarMaterias()
-    }, 100)
-}
+    if (tipo === 'padre') {
+        cont.innerHTML = formPadre()
+        setTimeout(() => cargarAlumnosSelect(), 100)
+    }
 }
 
 // =======================
-// CREAR
+// FUNCIONES
 // =======================
 
 async function crearCarrera() {
     const nombre = document.getElementById('nombre').value
-
     await fetch('/carreras', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
+        headers: {'Content-Type': 'application/json', Authorization: token},
         body: JSON.stringify({ nombre })
     })
-
     alert('Carrera creada 🔥')
 }
 
@@ -247,10 +238,7 @@ async function crearUsuario(rol) {
 
     await fetch('/registro', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
+        headers: {'Content-Type': 'application/json', Authorization: token},
         body: JSON.stringify({ nombre, usuario, password, rol })
     })
 
@@ -264,10 +252,7 @@ async function crearMateria() {
 
     await fetch('/materias', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
+        headers: {'Content-Type': 'application/json', Authorization: token},
         body: JSON.stringify({ nombre, carreraId, maestroId })
     })
 
@@ -277,194 +262,28 @@ async function crearMateria() {
 async function crearAlumno() {
     const nombre = document.getElementById('nombre').value
     const carreraId = document.getElementById('carrera').value
-    const grupo = document.getElementById('grupo').value // 🔥 NUEVO
+    const grupo = document.getElementById('grupo').value
 
-    const materias = Array.from(
-        document.getElementById('materias').selectedOptions
-    ).map(o => o.value)
+    const materias = Array.from(document.getElementById('materias').selectedOptions).map(o => o.value)
 
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
 
-    console.log(nombre, carreraId, grupo, materias) // 🔍 DEBUG
-
-    // 🔥 CREAR ALUMNO
     const res = await fetch('/alumnos', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
-        body: JSON.stringify({
-            nombre,
-            carreraId,
-            grupo, // 🔥 AQUÍ VA
-            materias
-        })
+        headers: {'Content-Type': 'application/json', Authorization: token},
+        body: JSON.stringify({ nombre, carreraId, grupo, materias })
     })
 
     const alumno = await res.json()
 
-    // 🔥 CREAR USUARIO DEL ALUMNO
     await fetch('/registro', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
-        body: JSON.stringify({
-            nombre,
-            usuario,
-            password,
-            rol: 'alumno',
-            alumnoId: alumno._id
-        })
+        headers: {'Content-Type': 'application/json', Authorization: token},
+        body: JSON.stringify({ nombre, usuario, password, rol: 'alumno', alumnoId: alumno._id })
     })
 
     alert('Alumno creado 🔥')
-}
-
-// =======================
-// CARGAR DATOS
-// =======================
-
-async function cargarCarrerasAlumno() {
-    const res = await fetch('/carreras', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('carrera')
-    select.innerHTML = ''
-
-    data.forEach(c => {
-        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
-    })
-
-    select.addEventListener('change', cargarMateriasPorCarrera)
-
-    cargarMateriasPorCarrera()
-}
-
-async function cargarCarrerasMateria() {
-    const res = await fetch('/carreras', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('carrera')
-    select.innerHTML = ''
-
-    data.forEach(c => {
-        select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`
-    })
-}
-
-async function cargarMateriasPorCarrera() {
-    const carreraId = document.getElementById('carrera').value
-
-    const res = await fetch(`/materias-por-carrera/${carreraId}`, {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('materias')
-    if (!select) return
-
-    select.innerHTML = ''
-
-    data.forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
-}
-
-async function cargarMaestros() {
-    const res = await fetch('/usuarios', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('maestro')
-    select.innerHTML = ''
-
-    data.filter(u => u.rol === 'maestro').forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
-}
-
-async function cargarAlumnos() {
-    const res = await fetch('/alumnos', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('alumno')
-
-    // 🔴 IMPORTANTE: valida que exista
-    if (!select) {
-        console.error('No existe select alumno')
-        return
-    }
-
-    select.innerHTML = ''
-
-    data.forEach(a => {
-        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
-    })
-}
-
-async function cargarMaterias() {
-    const res = await fetch('/materias', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('materias')
-    select.innerHTML = ''
-
-    data.forEach(m => {
-        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
-    })
-}
-
-async function asignarMaterias() {
-    const alumnoId = document.getElementById('alumno').value
-
-    const materias = Array.from(
-        document.getElementById('materias').selectedOptions
-    ).map(o => o.value)
-
-    await fetch(`/alumnos/${alumnoId}/materias`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
-        body: JSON.stringify({ materias })
-    })
-
-    alert('Materias asignadas 🔥')
-}
-
-async function cargarAlumnosSelect() {
-    const res = await fetch('/alumnos', {
-        headers: { Authorization: token }
-    })
-
-    const data = await res.json()
-
-    const select = document.getElementById('alumno')
-    select.innerHTML = ''
-
-    data.forEach(a => {
-        select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`
-    })
 }
 
 async function crearPadre() {
@@ -475,20 +294,91 @@ async function crearPadre() {
 
     await fetch('/registro', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: token
-        },
-        body: JSON.stringify({
-            nombre,
-            usuario,
-            password,
-            rol: 'padre',
-            alumnoId
-        })
+        headers: {'Content-Type': 'application/json', Authorization: token},
+        body: JSON.stringify({ nombre, usuario, password, rol: 'padre', alumnoId })
     })
 
     alert('Padre registrado 🔥')
+}
+
+// =======================
+// CARGAS
+// =======================
+
+async function cargarCarrerasAlumno() {
+    const res = await fetch('/carreras', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('carrera')
+    select.innerHTML = ''
+    data.forEach(c => select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`)
+    select.addEventListener('change', cargarMateriasPorCarrera)
+    cargarMateriasPorCarrera()
+}
+
+async function cargarCarrerasMateria() {
+    const res = await fetch('/carreras', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('carrera')
+    select.innerHTML = ''
+    data.forEach(c => select.innerHTML += `<option value="${c._id}">${c.nombre}</option>`)
+}
+
+async function cargarMateriasPorCarrera() {
+    const carreraId = document.getElementById('carrera').value
+    const res = await fetch(`/materias-por-carrera/${carreraId}`, { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('materias')
+    if (!select) return
+    select.innerHTML = ''
+    data.forEach(m => select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`)
+}
+
+async function cargarMaestros() {
+    const res = await fetch('/usuarios', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('maestro')
+    select.innerHTML = ''
+    data.filter(u => u.rol === 'maestro').forEach(m => {
+        select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`
+    })
+}
+
+async function cargarAlumnos() {
+    const res = await fetch('/alumnos', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('alumno')
+    if (!select) return
+    select.innerHTML = ''
+    data.forEach(a => select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`)
+}
+
+async function cargarAlumnosSelect() {
+    const res = await fetch('/alumnos', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('alumno')
+    select.innerHTML = ''
+    data.forEach(a => select.innerHTML += `<option value="${a._id}">${a.nombre}</option>`)
+}
+
+async function cargarMaterias() {
+    const res = await fetch('/materias', { headers: { Authorization: token } })
+    const data = await res.json()
+    const select = document.getElementById('materias')
+    select.innerHTML = ''
+    data.forEach(m => select.innerHTML += `<option value="${m._id}">${m.nombre}</option>`)
+}
+
+async function asignarMaterias() {
+    const alumnoId = document.getElementById('alumno').value
+    const materias = Array.from(document.getElementById('materias').selectedOptions).map(o => o.value)
+
+    await fetch(`/alumnos/${alumnoId}/materias`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json', Authorization: token},
+        body: JSON.stringify({ materias })
+    })
+
+    alert('Materias asignadas 🔥')
 }
 
 // =======================
@@ -501,9 +391,6 @@ function logout() {
 }
 
 // =======================
-// INICIO
-// =======================
-
 mostrar('carrera')
 </script>
 
