@@ -60,15 +60,17 @@ body.light .card {
 <body>
 
 <!-- BOTONES -->
-<button onclick="toggleTheme()" class="btn btn-sm btn-outline-primary"
-style="position:fixed; top:10px; right:100px;">
+<div style="position: fixed; top: 10px; right: 10px; display: flex; gap:10px; z-index:1000;">
+<button onclick="toggleTheme()" class="btn btn-sm btn-outline-primary">
+
 🌙 / ☀️
 </button>
 
-<button onclick="logout()" class="btn btn-sm btn-danger"
-style="position:fixed; top:10px; right:10px;">
+<button onclick="logout()" class="btn btn-sm btn-danger">
+
 Cerrar Sesión
 </button>
+</div>
 
 <div class="container mt-5">
 
