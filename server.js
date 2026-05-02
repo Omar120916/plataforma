@@ -105,11 +105,11 @@ app.post('/login', async (req, res) => {
     if (!valido) return res.status(401).json({ mensaje: 'Contraseña incorrecta' })
 
     const token = jwt.sign({
-        id: user._id,
-        usuario: user.usuario,
-        rol: user.rol,
-        alumnoId: user.alumnoId
-    }, 'secreto123')
+    id: user._id,
+    usuario: user.usuario,
+    rol: user.rol,
+    alumnos: user.alumnos || [] // 🔥 CLAVE
+}, 'secreto123')
 
     res.json({ token })
 })
