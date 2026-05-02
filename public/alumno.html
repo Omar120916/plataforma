@@ -173,6 +173,7 @@ body.light .card {
 const token = localStorage.getItem('token')
 
 if (!token) {
+    alert('Sesión expirada, vuelve a iniciar sesión')
     window.location.href = '/index.html'
 }
 
@@ -235,6 +236,12 @@ async function cargarMateriasAlumno() {
     const res = await fetch('/mi-alumno', {
         headers: { Authorization: token }
     })
+
+    if (res.status === 401 || res.status === 403) {
+    localStorage.removeItem('token')
+    window.location.href = '/index.html'
+    return
+}
 
     // 🔴 SI FALLA EL BACKEND
     if (!res.ok) {
