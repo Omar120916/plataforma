@@ -233,41 +233,43 @@ function mostrar(tipo) {
 // 📚 CARGAR MATERIAS
 async function cargarMateriasAlumno() {
 
-    const res = await fetch('/mi-alumno', {
-        headers: { Authorization: token }
-    })
+    const [resAlumno, resCalifs] = await Promise.all([
+        fetch('/mi-alumno', {
+            headers: { Authorization: token }
+        }),
+        fetch('/mis-calificaciones', {
+            headers: { Authorization: token }
+        })
+    ])
 
-    if (res.status === 401 || res.status === 403) {
-    localStorage.removeItem('token')
-    window.location.href = '/index.html'
-    return
-}
-
-    // 🔴 SI FALLA EL BACKEND
-    if (!res.ok) {
-        const error = await res.text()
-        console.error('Error backend:', error)
-
+    if (!resAlumno.ok || !resCalifs.ok) {
         document.getElementById('contenido').innerHTML = `
-            <p class="text-danger">Error cargando materias 😥</p>
+            <p class="text-danger">Error cargando datos 😥</p>
         `
         return
     }
 
-    const alumno = await res.json()
+    const alumno = await resAlumno.json()
+    const calificaciones = await resCalifs.json()
 
     let html = '<h3>Mis materias</h3><div class="row">'
 
-    // 🔥 VALIDACIÓN REAL
     if (!alumno.materias || alumno.materias.length === 0) {
         html += '<p>No tienes materias asignadas</p>'
     } else {
+
         alumno.materias.forEach(m => {
+
+            // 🔥 BUSCAR CALIFICACIÓN DE ESA MATERIA
+            const calif = calificaciones.find(c => c.materia === m.nombre)
+
             html += `
                 <div class="col-md-4">
                     <div class="card p-3 mb-3 shadow">
                         <h5>${m.nombre}</h5>
-                        <small class="text-muted">Sin calificación</small>
+                        <small class="${calif ? 'text-success' : 'text-muted'}">
+                            ${calif ? 'Calificación: ' + calif.calificacion : 'Sin calificación'}
+                        </small>
                     </div>
                 </div>
             `
