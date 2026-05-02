@@ -22,6 +22,7 @@ const Usuario = mongoose.model('Usuario', {
     usuario: String,
     password: String,
     rol: String,
+    alumnoId: mongoose.Schema.Types.ObjectId,
     alumnos: [mongoose.Schema.Types.ObjectId]
 })
 
