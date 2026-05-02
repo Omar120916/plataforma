@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Padre Premium</title>
+<title>Padre</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -41,7 +41,6 @@ body.light .card {
     height: 100vh;
     position: fixed;
     padding: 20px;
-    backdrop-filter: blur(10px);
 }
 
 /* MAIN */
@@ -99,10 +98,6 @@ body.light .card {
         flex-wrap: wrap;
     }
 
-    .card {
-        padding: 15px !important;
-    }
-
     .nav-tabs {
         overflow-x: auto;
         flex-wrap: nowrap;
@@ -126,8 +121,8 @@ body.light .card {
     <h5>👨‍👦 Menú</h5>
     <button onclick="cargar()">🏠 Inicio</button>
     <button onclick="verAlertas()">🚨 Alertas</button>
-    <button onclick="generarBoleta" class="btn btn-success mb-3">
-        Descargar boleta
+    <button onclick="generarBoleta()" class="btn btn-success mt-3">
+        📄 Boleta
     </button>
 </div>
 
@@ -162,21 +157,21 @@ color: white;
 padding: 15px;
 border-radius: 10px;
 display: none;
-z-index: 9999;
-">
+z-index: 9999;">
 🔔 Nueva alerta
 </div>
 
-<div id="boleta" style="display:none; padding:20px;">
-</div>
+<!-- 📄 BOLETA -->
+<div id="boleta" style="display:none; padding:20px;"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
 const token = localStorage.getItem('token')
-
 if (!token) window.location.href = '/index.html'
 
 let alertasGlobal = []
+const payload = JSON.parse(atob(token.split('.')[1]))
 
 history.pushState(null, null, location.href)
 window.onpopstate = () => history.go(1)
@@ -188,14 +183,8 @@ window.onload = () => {
 
 // 🌗 TEMA
 function toggleTheme() {
-    const body = document.body
-    if (body.classList.contains('dark')) {
-        body.classList.replace('dark', 'light')
-        localStorage.setItem('theme', 'light')
-    } else {
-        body.classList.replace('light', 'dark')
-        localStorage.setItem('theme', 'dark')
-    }
+    document.body.classList.toggle('dark')
+    document.body.classList.toggle('light')
 }
 
 // ☰ MENU
@@ -217,99 +206,25 @@ async function actualizarAlertas() {
     alertasGlobal = data
     document.getElementById('badge').innerText = data.length
 
-    if (data.length > 0) {
-        mostrarToast(`Tienes ${data.length} alertas`)
-    }
-}
-
-async function generarBoleta() {
-
-    const alumnos = await (await fetch('/alumnos', {
-        headers: { Authorization: token }
-    })).json()
-
-    const calificaciones = await (await fetch('/mis-calificaciones', {
-        headers: { Authorization: token }
-    })).json()
-
-    const hijos = alumnos.filter(a => payload.alumnos?.includes(a._id))
-
-    if (hijos.length === 0) {
-        alert('No hay alumnos')
-        return
-    }
-
-    const hijo = hijos[0] // 👉 puedes cambiar luego para seleccionar
-
-    const califs = calificaciones.filter(c => c.alumnoId === hijo._id)
-
-    let promedio = 0
-    if (califs.length > 0) {
-        promedio = (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1)
-    }
-
-    let html = `
-    <div style="font-family:sans-serif;">
-        <h2 style="text-align:center;">📄 Boleta Escolar</h2>
-        <hr>
-
-        <p><strong>Alumno:</strong> ${hijo.nombre}</p>
-        <p><strong>Grupo:</strong> ${hijo.grupo || 'N/A'}</p>
-
-        <table style="width:100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background:#0d6efd; color:white;">
-                    <th style="padding:8px;">Materia</th>
-                    <th style="padding:8px;">Calificación</th>
-                </tr>
-            </thead>
-            <tbody>
-    `
-
-    califs.forEach(c => {
-        html += `
-        <tr>
-            <td style="padding:8px; border:1px solid #ddd;">${c.materia}</td>
-            <td style="padding:8px; border:1px solid #ddd;">${c.calificacion}</td>
-        </tr>
-        `
-    })
-
-    html += `
-            </tbody>
-        </table>
-
-        <h3 style="margin-top:20px;">Promedio: ${promedio}</h3>
-    </div>
-    `
-
-    const elemento = document.getElementById('boleta')
-    elemento.innerHTML = html
-    elemento.style.display = 'block'
-
-    // 🔥 GENERAR PDF
-    html2pdf().from(elemento).save(`Boleta-${hijo.nombre}.pdf`)
-
-    elemento.style.display = 'none'
+    if (data.length > 0) mostrarToast(`Tienes ${data.length} alertas`)
 }
 
 function mostrarToast(msg) {
-    const toast = document.getElementById('toast')
-    toast.innerText = msg
-    toast.style.display = 'block'
-
-    setTimeout(() => toast.style.display = 'none', 3000)
+    const t = document.getElementById('toast')
+    t.innerText = msg
+    t.style.display = 'block'
+    setTimeout(()=>t.style.display='none',3000)
 }
 
 function verAlertas() {
     let html = '<h3>🚨 Alertas</h3>'
 
-    if (alertasGlobal.length === 0) {
+    if (!alertasGlobal.length) {
         html += '<p class="text-success">Todo bien 👍</p>'
     } else {
-        alertasGlobal.forEach(a => {
-            let color = a.tipo === 'baja' ? 'danger' : 'secondary'
-            html += `<div class="alert alert-${color}">${a.mensaje}</div>`
+        alertasGlobal.forEach(a=>{
+            let c = a.tipo==='baja'?'danger':'secondary'
+            html += `<div class="alert alert-${c}">${a.mensaje}</div>`
         })
     }
 
@@ -317,77 +232,94 @@ function verAlertas() {
     document.getElementById('badge').innerText = 0
 }
 
-// 🔍 TOKEN
-const payload = JSON.parse(atob(token.split('.')[1]))
+// 📄 BOLETA
+async function generarBoleta() {
+
+    const alumnos = await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
+    const califsAll = await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
+
+    const hijos = alumnos.filter(a=>payload.alumnos?.includes(a._id))
+    if(!hijos.length) return alert('No hay alumnos')
+
+    const hijo = hijos[0]
+    const califs = califsAll.filter(c=>c.alumnoId===hijo._id)
+
+    let prom = califs.length ? (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1) : 0
+
+    let html = `
+    <div style="background:white;color:black;padding:20px;">
+        <h2 style="text-align:center;">Boleta Escolar</h2>
+        <p><b>Alumno:</b> ${hijo.nombre}</p>
+        <p><b>Grupo:</b> ${hijo.grupo||'N/A'}</p>
+
+        <table style="width:100%;border-collapse:collapse;">
+            <tr style="background:#0d6efd;color:white;">
+                <th>Materia</th><th>Calificación</th>
+            </tr>
+    `
+
+    califs.forEach(c=>{
+        html += `<tr>
+        <td style="border:1px solid #ddd;">${c.materia}</td>
+        <td style="border:1px solid #ddd;">${c.calificacion}</td>
+        </tr>`
+    })
+
+    html += `</table><h3>Promedio: ${prom}</h3></div>`
+
+    const el = document.getElementById('boleta')
+    el.innerHTML = html
+    el.style.display='block'
+
+    html2pdf().from(el).save(`Boleta-${hijo.nombre}.pdf`)
+
+    el.style.display='none'
+}
 
 // 👨‍👦 DASHBOARD
 async function cargar() {
 
-    const alumnos = await (await fetch('/alumnos', { headers: { Authorization: token } })).json()
-    const calificaciones = await (await fetch('/mis-calificaciones', { headers: { Authorization: token } })).json()
+    const alumnos = await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
+    const califs = await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
 
-    const hijos = alumnos.filter(a => payload.alumnos?.includes(a._id))
+    const hijos = alumnos.filter(a=>payload.alumnos?.includes(a._id))
 
-    const tabs = document.getElementById('tabs')
-    const cont = document.getElementById('contenido')
+    let tabs='', cont=''
 
-    tabs.innerHTML = ''
-    cont.innerHTML = ''
+    hijos.forEach((h,i)=>{
 
-    hijos.forEach((hijo, i) => {
-
-        tabs.innerHTML += `
-        <li class="nav-item">
-            <button class="nav-link ${i===0?'active':''}" onclick="mostrarHijo('${hijo._id}')">
-                👦 ${hijo.nombre}
-            </button>
+        tabs += `<li class="nav-item">
+        <button class="nav-link ${i===0?'active':''}" onclick="mostrarHijo('${h._id}')">${h.nombre}</button>
         </li>`
 
-        const califs = calificaciones.filter(c => c.alumnoId === hijo._id)
+        const cals = califs.filter(c=>c.alumnoId===h._id)
 
-        let prom = califs.length ? (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1) : 0
-        let clase = prom>=9?'alta':prom<6?'baja':'media'
+        let html = `<div id="hijo-${h._id}" style="display:${i===0?'block':'none'}" class="card p-3 mb-3">`
 
-        let html = `
-        <div id="hijo-${hijo._id}" class="hijo-tab" style="display:${i===0?'block':'none'}">
-            <div class="card p-3 mb-3 shadow">
-                <h5>${hijo.nombre}</h5>
-                <p>Grupo: ${hijo.grupo||'N/A'}</p>
-                <h6 class="${clase}">Promedio: ${prom}</h6><hr>
-        `
+        cals.forEach(c=>{
+            html += `<div class="d-flex justify-content-between">
+            <span>${c.materia}</span>
+            <b>${c.calificacion}</b>
+            </div>`
+        })
 
-        if (!califs.length) {
-            html += '<p>Sin calificaciones</p>'
-        } else {
-            califs.forEach(c=>{
-                let col = c.calificacion>=9?'alta':c.calificacion<6?'baja':'media'
-                html += `<div class="d-flex justify-content-between">
-                <span>${c.materia}</span>
-                <strong class="${col}">${c.calificacion}</strong>
-                </div>`
-            })
-        }
-
-        html += '</div></div>'
-        cont.innerHTML += html
+        html += '</div>'
+        cont += html
     })
+
+    document.getElementById('tabs').innerHTML = tabs
+    document.getElementById('contenido').innerHTML = cont
 }
 
-// 🔄 CAMBIAR HIJO
-function mostrarHijo(id) {
-    document.querySelectorAll('.hijo-tab').forEach(d=>d.style.display='none')
+function mostrarHijo(id){
+    document.querySelectorAll('[id^="hijo-"]').forEach(d=>d.style.display='none')
     document.getElementById('hijo-'+id).style.display='block'
-
-    document.querySelectorAll('.nav-link').forEach(b=>b.classList.remove('active'))
-    event.target.classList.add('active')
-
-    document.querySelector('.sidebar')?.classList.remove('active')
 }
 
-// 🚀 INICIO
+// 🚀 INIT
 cargar()
 actualizarAlertas()
-setInterval(actualizarAlertas, 5000)
+setInterval(actualizarAlertas,5000)
 
 </script>
 
