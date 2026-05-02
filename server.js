@@ -279,7 +279,7 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
     const alumno = await Alumno.findById(req.usuario.alumnoId)
 
     if (!alumno) {
-        return res.status(404).json({ mensaje: 'Alumno no encontrado' })
+        return res.status(404).json({ mensaje: 'Alumno eliminado o inválido' })
     }
 
     const materias = await Materia.find({
