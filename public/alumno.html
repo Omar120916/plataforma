@@ -252,24 +252,45 @@ async function cargarMateriasAlumno() {
     const alumno = await resAlumno.json()
     const calificaciones = await resCalifs.json()
 
-    let html = '<h3>Mis materias</h3><div class="row">'
+    let html = '<h3 class="mb-4">📚 Mis materias</h3><div class="row">'
+
+    let suma = 0
+    let contador = 0
 
     if (!alumno.materias || alumno.materias.length === 0) {
-        html += '<p>No tienes materias asignadas</p>'
+        html += '<p>No tienes materias asignadas 😢</p>'
     } else {
 
         alumno.materias.forEach(m => {
 
-            // 🔥 BUSCAR CALIFICACIÓN DE ESA MATERIA
             const calif = calificaciones.find(c => c.materia === m.nombre)
+
+            let texto = 'Sin calificación'
+            let color = 'text-muted'
+
+            if (calif) {
+                const c = calif.calificacion
+
+                suma += c
+                contador++
+
+                if (c < 6) {
+                    texto = `Reprobado: ${c} ❌`
+                    color = 'text-danger'
+                } else if (c < 8) {
+                    texto = `Regular: ${c} ⚠️`
+                    color = 'text-warning'
+                } else {
+                    texto = `Excelente: ${c} 🔥`
+                    color = 'text-success'
+                }
+            }
 
             html += `
                 <div class="col-md-4">
                     <div class="card p-3 mb-3 shadow">
                         <h5>${m.nombre}</h5>
-                        <small class="${calif ? 'text-success' : 'text-muted'}">
-                            ${calif ? 'Calificación: ' + calif.calificacion : 'Sin calificación'}
-                        </small>
+                        <small class="${color}">${texto}</small>
                     </div>
                 </div>
             `
@@ -277,6 +298,32 @@ async function cargarMateriasAlumno() {
     }
 
     html += '</div>'
+
+    // 🔥 PROMEDIO
+    if (contador > 0) {
+        const promedio = (suma / contador).toFixed(1)
+
+        let mensaje = ''
+        let color = ''
+
+        if (promedio < 6) {
+            mensaje = 'Vas mal 😬'
+            color = 'text-danger'
+        } else if (promedio < 8) {
+            mensaje = 'Puedes mejorar 😐'
+            color = 'text-warning'
+        } else {
+            mensaje = 'Excelente trabajo 🔥'
+            color = 'text-success'
+        }
+
+        html = `
+            <div class="card p-3 mb-4 shadow text-center">
+                <h4>📊 Promedio: ${promedio}</h4>
+                <p class="${color}">${mensaje}</p>
+            </div>
+        ` + html
+    }
 
     document.getElementById('contenido').innerHTML = html
 }
