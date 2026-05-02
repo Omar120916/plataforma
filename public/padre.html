@@ -7,308 +7,174 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    transition: 0.3s;
-}
+body { margin:0; font-family:'Segoe UI'; transition:0.3s; }
 
-/* 🌙 DARK */
-body.dark {
-    background: #0f172a;
-    color: #e2e8f0;
-}
-body.dark .sidebar { background: #1e293b; }
-body.dark .card { background: #1e293b; color: #e2e8f0; }
+/* DARK */
+body.dark { background:#0f172a; color:#e2e8f0; }
+body.dark .sidebar { background:#1e293b; }
+body.dark .card { background:#1e293b; }
 
-/* 🌞 LIGHT */
-body.light {
-    background: #f1f5f9;
-    color: #1e293b;
-}
-body.light .sidebar {
-    background: white;
-    border-right: 1px solid #ddd;
-}
-body.light .card {
-    background: white;
-    color: #1e293b;
-}
+/* LIGHT */
+body.light { background:#f1f5f9; color:#1e293b; }
+body.light .sidebar { background:white; border-right:1px solid #ddd; }
+body.light .card { background:white; }
 
 /* SIDEBAR */
-.sidebar {
-    width: 220px;
-    height: 100vh;
-    position: fixed;
-    padding: 20px;
-}
+.sidebar { width:220px; height:100vh; position:fixed; padding:20px; }
 
 /* MAIN */
-.main {
-    margin-left: 220px;
-    padding: 20px;
-}
+.main { margin-left:220px; padding:20px; }
 
 /* BOTONES */
 .top-buttons {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 10px;
-    z-index: 1000;
+    position:fixed; top:10px; right:10px;
+    display:flex; gap:10px; z-index:1000;
 }
 
-/* ☰ */
+/* MENU */
 .menu-toggle {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1001;
-    display: none;
+    position:fixed; top:10px; left:10px;
+    display:none; z-index:1001;
 }
 
-/* COLORES */
-.alta { color: #22c55e; }
-.media { color: #facc15; }
-.baja { color: #ef4444; }
-
-/* 📱 RESPONSIVE */
-@media (max-width: 768px) {
-
-    .menu-toggle { display: block; }
-
-    .sidebar {
-        transform: translateX(-100%);
-        z-index: 1000;
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-    .main {
-        margin-left: 0;
-        padding-top: 60px;
-    }
-
-    .top-buttons {
-        top: 50px;
-        right: 10px;
-        flex-wrap: wrap;
-    }
-
-    .nav-tabs {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-    }
-
-    .nav-tabs .nav-link {
-        white-space: nowrap;
-        font-size: 0.85rem;
-    }
+/* RESPONSIVE */
+@media (max-width:768px){
+    .menu-toggle{display:block;}
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.active{transform:translateX(0);}
+    .main{margin-left:0; padding-top:60px;}
+    .top-buttons{top:50px;}
 }
 </style>
 </head>
 
 <body>
 
-<!-- ☰ -->
 <button class="menu-toggle btn btn-primary" onclick="toggleMenu()">☰</button>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
     <h5>👨‍👦 Menú</h5>
     <button onclick="cargar()">🏠 Inicio</button>
     <button onclick="verAlertas()">🚨 Alertas</button>
-    <button onclick="generarBoleta()" class="btn btn-success mt-3">
-        📄 Boleta
-    </button>
+    <button onclick="generarBoleta()" class="btn btn-success mt-3">📄 Boleta</button>
 </div>
 
-<!-- BOTONES -->
 <div class="top-buttons">
     <button onclick="toggleTheme()" class="btn btn-sm btn-outline-primary">🌙</button>
 
     <button onclick="verAlertas()" class="btn btn-sm btn-warning position-relative">
         🔔
-        <span id="badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-            0
-        </span>
+        <span id="badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle">0</span>
     </button>
 
     <button onclick="logout()" class="btn btn-sm btn-danger">Salir</button>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-    <h3 class="mb-4">👨‍👦 Panel del Papá</h3>
-    <ul class="nav nav-tabs mb-3" id="tabs"></ul>
+    <h3>👨‍👦 Panel del Papá</h3>
+    <ul class="nav nav-tabs" id="tabs"></ul>
     <div id="contenido"></div>
 </div>
 
-<!-- 🔔 TOAST -->
-<div id="toast" style="
-position: fixed;
-bottom: 20px;
-right: 20px;
-background: #0d6efd;
-color: white;
-padding: 15px;
-border-radius: 10px;
-display: none;
-z-index: 9999;">
+<div id="toast" style="position:fixed;bottom:20px;right:20px;background:#0d6efd;color:white;padding:15px;border-radius:10px;display:none;">
 🔔 Nueva alerta
 </div>
 
-<!-- 📄 BOLETA -->
+<!-- 🔥 BOLETA -->
 <div id="boleta" style="display:none; padding:20px;"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
 const token = localStorage.getItem('token')
-if (!token) window.location.href = '/index.html'
+if(!token) location.href='/index.html'
 
-let alertasGlobal = []
 const payload = JSON.parse(atob(token.split('.')[1]))
+let alertasGlobal = []
 
-history.pushState(null, null, location.href)
-window.onpopstate = () => history.go(1)
-
-window.onload = () => {
-    const theme = localStorage.getItem('theme') || 'dark'
-    document.body.classList.add(theme)
+// THEME
+window.onload=()=>{
+    document.body.classList.add(localStorage.getItem('theme')||'dark')
 }
 
-// 🌗 TEMA
-function toggleTheme() {
+function toggleTheme(){
     document.body.classList.toggle('dark')
     document.body.classList.toggle('light')
 }
 
-// ☰ MENU
-function toggleMenu() {
+// MENU
+function toggleMenu(){
     document.querySelector('.sidebar').classList.toggle('active')
 }
 
-// 🔐 LOGOUT
-function logout() {
+// LOGOUT
+function logout(){
     localStorage.removeItem('token')
-    window.location.href = '/index.html'
+    location.href='/index.html'
 }
 
-// 🔔 ALERTAS
-async function actualizarAlertas() {
-    const res = await fetch('/alertas', { headers: { Authorization: token } })
-    const data = await res.json()
+// ALERTAS
+async function actualizarAlertas(){
+    const res=await fetch('/alertas',{headers:{Authorization:token}})
+    const data=await res.json()
+    alertasGlobal=data
+    document.getElementById('badge').innerText=data.length
 
-    alertasGlobal = data
-    document.getElementById('badge').innerText = data.length
-
-    if (data.length > 0) mostrarToast(`Tienes ${data.length} alertas`)
-}
-
-function mostrarToast(msg) {
-    const t = document.getElementById('toast')
-    t.innerText = msg
-    t.style.display = 'block'
-    setTimeout(()=>t.style.display='none',3000)
-}
-
-function verAlertas() {
-    let html = '<h3>🚨 Alertas</h3>'
-
-    if (!alertasGlobal.length) {
-        html += '<p class="text-success">Todo bien 👍</p>'
-    } else {
-        alertasGlobal.forEach(a=>{
-            let c = a.tipo==='baja'?'danger':'secondary'
-            html += `<div class="alert alert-${c}">${a.mensaje}</div>`
-        })
+    if(data.length){
+        const t=document.getElementById('toast')
+        t.innerText=`Tienes ${data.length} alertas`
+        t.style.display='block'
+        setTimeout(()=>t.style.display='none',3000)
     }
-
-    document.getElementById('contenido').innerHTML = html
-    document.getElementById('badge').innerText = 0
 }
 
-// 📄 BOLETA
-async function generarBoleta() {
-
-    const alumnos = await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
-    const califsAll = await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
-
-    const hijos = alumnos.filter(a=>payload.alumnos?.includes(a._id))
-    if(!hijos.length) return alert('No hay alumnos')
-
-    const hijo = hijos[0]
-    const califs = califsAll.filter(c=>c.alumnoId===hijo._id)
-
-    let prom = califs.length ? (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1) : 0
-
-    let html = `
-    <div style="background:white;color:black;padding:20px;">
-        <h2 style="text-align:center;">Boleta Escolar</h2>
-        <p><b>Alumno:</b> ${hijo.nombre}</p>
-        <p><b>Grupo:</b> ${hijo.grupo||'N/A'}</p>
-
-        <table style="width:100%;border-collapse:collapse;">
-            <tr style="background:#0d6efd;color:white;">
-                <th>Materia</th><th>Calificación</th>
-            </tr>
-    `
-
-    califs.forEach(c=>{
-        html += `<tr>
-        <td style="border:1px solid #ddd;">${c.materia}</td>
-        <td style="border:1px solid #ddd;">${c.calificacion}</td>
-        </tr>`
+function verAlertas(){
+    let html='<h3>🚨 Alertas</h3>'
+    alertasGlobal.forEach(a=>{
+        let c=a.tipo==='baja'?'danger':'secondary'
+        html+=`<div class="alert alert-${c}">${a.mensaje}</div>`
     })
-
-    html += `</table><h3>Promedio: ${prom}</h3></div>`
-
-    const el = document.getElementById('boleta')
-    el.innerHTML = html
-    el.style.display='block'
-
-    html2pdf().from(el).save(`Boleta-${hijo.nombre}.pdf`)
-
-    el.style.display='none'
+    document.getElementById('contenido').innerHTML=html
+    document.getElementById('badge').innerText=0
 }
 
-// 👨‍👦 DASHBOARD
-async function cargar() {
+// DASHBOARD
+async function cargar(){
 
-    const alumnos = await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
-    const califs = await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
+    const alumnos=await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
+    const califs=await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
 
-    const hijos = alumnos.filter(a=>payload.alumnos?.includes(a._id))
+    const hijos=alumnos.filter(a=>payload.alumnos?.includes(a._id))
 
-    let tabs='', cont=''
+    let tabs='',cont=''
 
     hijos.forEach((h,i)=>{
 
-        tabs += `<li class="nav-item">
+        tabs+=`<li class="nav-item">
         <button class="nav-link ${i===0?'active':''}" onclick="mostrarHijo('${h._id}')">${h.nombre}</button>
         </li>`
 
-        const cals = califs.filter(c=>c.alumnoId===h._id)
+        const cals=califs.filter(c=>c.alumnoId.toString()===h._id.toString())
 
-        let html = `<div id="hijo-${h._id}" style="display:${i===0?'block':'none'}" class="card p-3 mb-3">`
+        let html=`<div id="hijo-${h._id}" style="display:${i===0?'block':'none'}" class="card p-3 mb-3">`
 
-        cals.forEach(c=>{
-            html += `<div class="d-flex justify-content-between">
-            <span>${c.materia}</span>
-            <b>${c.calificacion}</b>
-            </div>`
-        })
+        if(!cals.length){
+            html+='<p>Sin calificaciones</p>'
+        }else{
+            cals.forEach(c=>{
+                html+=`<div class="d-flex justify-content-between">
+                <span>${c.materia}</span>
+                <b>${c.calificacion}</b>
+                </div>`
+            })
+        }
 
-        html += '</div>'
-        cont += html
+        html+='</div>'
+        cont+=html
     })
 
-    document.getElementById('tabs').innerHTML = tabs
-    document.getElementById('contenido').innerHTML = cont
+    document.getElementById('tabs').innerHTML=tabs
+    document.getElementById('contenido').innerHTML=cont
 }
 
 function mostrarHijo(id){
@@ -316,7 +182,56 @@ function mostrarHijo(id){
     document.getElementById('hijo-'+id).style.display='block'
 }
 
-// 🚀 INIT
+// 📄 BOLETA (FIX REAL)
+async function generarBoleta(){
+
+    const alumnos=await (await fetch('/alumnos',{headers:{Authorization:token}})).json()
+    const califsAll=await (await fetch('/mis-calificaciones',{headers:{Authorization:token}})).json()
+
+    const hijos=alumnos.filter(a=>payload.alumnos?.includes(a._id))
+    if(!hijos.length) return alert('No hay alumnos')
+
+    const hijo=hijos[0]
+
+    // 🔥 FIX IMPORTANTE
+    const califs=califsAll.filter(c=>c.alumnoId.toString()===hijo._id.toString())
+
+    let prom=califs.length
+        ? (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1)
+        : 0
+
+    let html=`<div style="background:white;color:black;padding:20px;">
+    <h2 style="text-align:center;">Boleta Escolar</h2>
+    <p><b>${hijo.nombre}</b></p>
+    <p>Grupo: ${hijo.grupo||'N/A'}</p>
+
+    <table style="width:100%;border-collapse:collapse;">
+    <tr style="background:#0d6efd;color:white;">
+    <th>Materia</th><th>Calificación</th></tr>`
+
+    if(!califs.length){
+        html+=`<tr><td colspan="2">Sin calificaciones</td></tr>`
+    }else{
+        califs.forEach(c=>{
+            html+=`<tr>
+            <td style="border:1px solid #ddd;">${c.materia}</td>
+            <td style="border:1px solid #ddd;">${c.calificacion}</td>
+            </tr>`
+        })
+    }
+
+    html+=`</table><h3>Promedio: ${prom}</h3></div>`
+
+    const el=document.getElementById('boleta')
+    el.innerHTML=html
+    el.style.display='block'
+
+    html2pdf().from(el).save(`Boleta-${hijo.nombre}.pdf`)
+
+    el.style.display='none'
+}
+
+// INIT
 cargar()
 actualizarAlertas()
 setInterval(actualizarAlertas,5000)
