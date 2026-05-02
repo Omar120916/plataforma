@@ -234,9 +234,36 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
 // =====================
 
 app.post('/calificaciones', verificarToken, async (req, res) => {
-    const nueva = new Calificacion(req.body)
+
+    const { alumnoId, materiaId, calificacion } = req.body
+
+    if (calificacion < 0 || calificacion > 10) {
+        return res.status(400).json({ mensaje: 'Calificación inválida' })
+    }
+
+    const existe = await Calificacion.findOne({
+        alumnoId,
+        materiaId
+    })
+
+    if (existe) {
+        return res.status(400).json({ mensaje: 'Ya está calificado' })
+    }
+
+    const nueva = new Calificacion({
+        alumnoId,
+        materiaId,
+        calificacion
+    })
+
     await nueva.save()
+
     res.json(nueva)
+})
+
+app.get('/calificaciones', verificarToken, async (req, res) => {
+    const califs = await Calificacion.find()
+    res.json(califs)
 })
 
 app.get('/mis-calificaciones', verificarToken, async (req, res) => {
@@ -257,10 +284,11 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
     const resultado = califs.map(c => {
         const materia = materias.find(m => m._id.toString() === c.materiaId.toString())
         return {
-            alumnoId: c.alumnoId.toString(), // 🔥 IMPORTANTE
-            materia: materia?.nombre,
-            calificacion: c.calificacion
-        }
+    alumnoId: c.alumnoId.toString(),
+    materiaId: c.materiaId.toString(), // 🔥 AGREGA ESTO
+    materia: materia?.nombre,
+    calificacion: c.calificacion
+}
     })
 
     res.json(resultado)

@@ -233,6 +233,11 @@ async function cargarAlumnos() {
 
     const mapa = {}
 
+    const resCalifs = await fetch('/calificaciones', {
+    headers: { Authorization: token }
+})
+const calificaciones = await resCalifs.json()
+
     data.forEach(a => {
         const key = a.materiaNombre + '-' + a.grupo
 
@@ -260,17 +265,35 @@ async function cargarAlumnos() {
         `
 
         bloque.alumnos.forEach(a => {
-            html += `
-            <div class="mb-2">
-                <small>${a.nombre}</small>
-                <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}">
-                <button class="btn btn-primary btn-sm w-100"
-                    onclick="guardarCal('${a._id}','${a.materiaId}')">
-                    Guardar
-                </button>
+
+    const yaCalificado = calificaciones.find(c =>
+        c.alumnoId === a._id &&
+        c.materiaId === a.materiaId
+    )
+
+    if (yaCalificado) {
+        html += `
+        <div class="mb-2">
+            <small>${a.nombre}</small>
+            <div class="text-success">
+                ✅ Calificado: ${yaCalificado.calificacion}
             </div>
-            `
-        })
+        </div>
+        `
+    } else {
+        html += `
+        <div class="mb-2">
+            <small>${a.nombre}</small>
+            <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}">
+            <button class="btn btn-primary btn-sm w-100"
+                onclick="guardarCal('${a._id}','${a.materiaId}')">
+                Guardar
+            </button>
+        </div>
+        `
+    }
+
+})
 
         html += `</div></div>`
     }
@@ -299,6 +322,7 @@ async function guardarCal(alumnoId, materiaId) {
     })
 
     alert('Guardado 🔥')
+    cargarAlumnos()
 }
 
 function logout() {
