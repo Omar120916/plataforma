@@ -224,21 +224,105 @@ async function cargarMaterias() {
 }
 
 // 👨‍🎓 ALUMNOS
-html += `
-<div class="col-12">
-    <div class="card p-3 mb-4 shadow">
-        <h5>📚 ${bloque.materia}</h5>
-        <small class="text-muted mb-2 d-block">Grupo ${bloque.grupo}</small>
+async function cargarAlumnos() {
 
-        <table class="table table-sm">
-            <thead>
+    const res = await fetch('/mis-alumnos', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    // 🔥 TRAER CALIFICACIONES
+    const resCalifs = await fetch('/mis-calificaciones', {
+        headers: { Authorization: token }
+    })
+    const calificaciones = await resCalifs.json()
+
+    const mapa = {}
+
+    // 🔥 AGRUPAR POR MATERIA + GRUPO
+    data.forEach(a => {
+        const key = a.materiaNombre + '-' + a.grupo
+
+        if (!mapa[key]) {
+            mapa[key] = {
+                materia: a.materiaNombre,
+                grupo: a.grupo,
+                alumnos: []
+            }
+        }
+
+        mapa[key].alumnos.push(a)
+    })
+
+    let html = '<h3>Mis alumnos</h3><div class="row">'
+
+    // 🔥 RECORRER BLOQUES
+    for (let key in mapa) {
+        const bloque = mapa[key]
+
+        html += `
+        <div class="col-12">
+            <div class="card p-3 mb-4 shadow">
+                <h5>📚 ${bloque.materia}</h5>
+                <small class="text-muted mb-2 d-block">Grupo ${bloque.grupo}</small>
+
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Alumno</th>
+                            <th>Calificación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `
+
+        bloque.alumnos.forEach(a => {
+
+            const yaCalificado = calificaciones.find(c =>
+                c.alumnoId === a._id &&
+                c.materia === a.materiaNombre
+            )
+
+            if (yaCalificado) {
+                html += `
                 <tr>
-                    <th>Alumno</th>
-                    <th>Calificación</th>
+                    <td>${a.nombre}</td>
+                    <td class="text-success">
+                        ✅ ${yaCalificado.calificacion}
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-`
+                `
+            } else {
+                html += `
+                <tr>
+                    <td>${a.nombre}</td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm mb-1"
+                            id="cal-${a._id}-${a.materiaId}">
+                        <button class="btn btn-primary btn-sm w-100"
+                            onclick="guardarCal('${a._id}','${a.materiaId}')">
+                            Guardar
+                        </button>
+                    </td>
+                </tr>
+                `
+            }
+
+        })
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        `
+    }
+
+    html += '</div>'
+
+    document.getElementById('contenido').innerHTML = html
+}
 
 // 💾 GUARDAR CALIFICACIÓN
 async function guardarCal(alumnoId, materiaId) {
