@@ -107,6 +107,7 @@ app.post('/login', async (req, res) => {
     id: user._id,
     usuario: user.usuario,
     rol: user.rol,
+    alumnoId: user.alumnoId,
     alumnos: user.alumnos || [] // 🔥 CLAVE
 }, 'secreto123')
 
@@ -265,7 +266,15 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 
 app.get('/mi-alumno', verificarToken, async (req, res) => {
 
+    if (!req.usuario.alumnoId) {
+        return res.status(400).json({ mensaje: 'No tiene alumno asignado' })
+    }
+
     const alumno = await Alumno.findById(req.usuario.alumnoId)
+
+    if (!alumno) {
+        return res.status(404).json({ mensaje: 'Alumno no encontrado' })
+    }
 
     const materias = await Materia.find({
         _id: { $in: alumno.materias }
