@@ -22,7 +22,7 @@ const Usuario = mongoose.model('Usuario', {
     usuario: String,
     password: String,
     rol: String,
-    alumnoId: mongoose.Schema.Types.ObjectId
+    alumnos: [mongoose.Schema.Types.ObjectId]
 })
 
 const Carrera = mongoose.model('Carrera', {
@@ -78,7 +78,7 @@ function soloAdmin(req, res, next) {
 // =====================
 
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
-    const { nombre, usuario, password, rol, alumnoId } = req.body
+    const { nombre, usuario, password, rol, alumnoId, alumnos } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
@@ -87,7 +87,8 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
         usuario,
         password: hash,
         rol,
-        alumnoId
+        alumnoId,
+        alumnos
     })
 
     await nuevo.save()
