@@ -78,7 +78,7 @@ function soloAdmin(req, res, next) {
 // =====================
 
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
-    const { nombre, usuario, password, rol, alumnoId, alumnos } = req.body
+    const { nombre, usuario, password, rol, alumnos } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
@@ -87,8 +87,7 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
         usuario,
         password: hash,
         rol,
-        alumnoId,
-        alumnos
+        alumnos : rol == 'padre' ? (alumnos || []) : []
     })
 
     await nuevo.save()
@@ -235,12 +234,23 @@ app.post('/calificaciones', verificarToken, async (req, res) => {
 
 app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 
-    const califs = await Calificacion.find({ alumnoId: req.usuario.alumnoId })
+    let filtro = {}
+
+    if (req.usuario.rol === 'alumno') {
+        filtro = { alumnoId: req.usuario.alumnoId }
+    }
+
+    if (req.usuario.rol === 'padre') {
+        filtro = { alumnoId: { $in: req.usuario.alumnos } }
+    }
+
+    const califs = await Calificacion.find(filtro)
     const materias = await Materia.find()
 
     const resultado = califs.map(c => {
         const materia = materias.find(m => m._id.toString() === c.materiaId.toString())
         return {
+            alumnoId: c.alumnoId.toString(), // 🔥 IMPORTANTE
             materia: materia?.nombre,
             calificacion: c.calificacion
         }
