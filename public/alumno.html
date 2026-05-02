@@ -231,23 +231,41 @@ function mostrar(tipo) {
 
 // 📚 CARGAR MATERIAS
 async function cargarMateriasAlumno() {
+
     const res = await fetch('/mi-alumno', {
         headers: { Authorization: token }
     })
+
+    // 🔴 SI FALLA EL BACKEND
+    if (!res.ok) {
+        const error = await res.text()
+        console.error('Error backend:', error)
+
+        document.getElementById('contenido').innerHTML = `
+            <p class="text-danger">Error cargando materias 😥</p>
+        `
+        return
+    }
 
     const alumno = await res.json()
 
     let html = '<h3>Mis materias</h3><div class="row">'
 
-    alumno.materias.forEach(m => {
-        html += `
-            <div class="col-md-4">
-                <div class="card p-3 mb-3">
-                    <h5>${m.nombre}</h5>
+    // 🔥 VALIDACIÓN REAL
+    if (!alumno.materias || alumno.materias.length === 0) {
+        html += '<p>No tienes materias asignadas</p>'
+    } else {
+        alumno.materias.forEach(m => {
+            html += `
+                <div class="col-md-4">
+                    <div class="card p-3 mb-3 shadow">
+                        <h5>${m.nombre}</h5>
+                        <small class="text-muted">Sin calificación</small>
+                    </div>
                 </div>
-            </div>
-        `
-    })
+            `
+        })
+    }
 
     html += '</div>'
 
