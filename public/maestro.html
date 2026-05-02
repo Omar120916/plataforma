@@ -224,84 +224,21 @@ async function cargarMaterias() {
 }
 
 // 👨‍🎓 ALUMNOS
-async function cargarAlumnos() {
-    const res = await fetch('/mis-alumnos', {
-        headers: { Authorization: token }
-    })
+html += `
+<div class="col-12">
+    <div class="card p-3 mb-4 shadow">
+        <h5>📚 ${bloque.materia}</h5>
+        <small class="text-muted mb-2 d-block">Grupo ${bloque.grupo}</small>
 
-    const data = await res.json()
-
-    const mapa = {}
-
-    const resCalifs = await fetch('/calificaciones', {
-    headers: { Authorization: token }
-})
-const calificaciones = await resCalifs.json()
-
-    data.forEach(a => {
-        const key = a.materiaNombre + '-' + a.grupo
-
-        if (!mapa[key]) {
-            mapa[key] = {
-                materia: a.materiaNombre,
-                grupo: a.grupo,
-                alumnos: []
-            }
-        }
-
-        mapa[key].alumnos.push(a)
-    })
-
-    let html = '<h3>Mis alumnos</h3><div class="row">'
-
-    for (let key in mapa) {
-        const bloque = mapa[key]
-
-        html += `
-        <div class="col-md-4">
-            <div class="card p-3 mb-3">
-                <h5>📚 ${bloque.materia}</h5>
-                <small class="text-muted">Grupo ${bloque.grupo}</small>
-        `
-
-        bloque.alumnos.forEach(a => {
-
-    const yaCalificado = calificaciones.find(c =>
-        c.alumnoId === a._id &&
-        c.materiaId === a.materiaId
-    )
-
-    if (yaCalificado) {
-        html += `
-        <div class="mb-2">
-            <small>${a.nombre}</small>
-            <div class="text-success">
-                ✅ Calificado: ${yaCalificado.calificacion}
-            </div>
-        </div>
-        `
-    } else {
-        html += `
-        <div class="mb-2">
-            <small>${a.nombre}</small>
-            <input type="number" class="form-control form-control-sm my-1" id="cal-${a._id}-${a.materiaId}">
-            <button class="btn btn-primary btn-sm w-100"
-                onclick="guardarCal('${a._id}','${a.materiaId}')">
-                Guardar
-            </button>
-        </div>
-        `
-    }
-
-})
-
-        html += `</div></div>`
-    }
-
-    html += '</div>'
-
-    document.getElementById('contenido').innerHTML = html
-}
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Alumno</th>
+                    <th>Calificación</th>
+                </tr>
+            </thead>
+            <tbody>
+`
 
 // 💾 GUARDAR CALIFICACIÓN
 async function guardarCal(alumnoId, materiaId) {
