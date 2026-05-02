@@ -126,6 +126,9 @@ body.light .card {
     <h5>👨‍👦 Menú</h5>
     <button onclick="cargar()">🏠 Inicio</button>
     <button onclick="verAlertas()">🚨 Alertas</button>
+    <button onclick="generarBoleta" class="btn btn-success mb-3">
+        Descargar boleta
+    </button>
 </div>
 
 <!-- BOTONES -->
@@ -164,6 +167,10 @@ z-index: 9999;
 🔔 Nueva alerta
 </div>
 
+<div id="boleta" style="display:none; padding:20px;">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 const token = localStorage.getItem('token')
 
@@ -213,6 +220,77 @@ async function actualizarAlertas() {
     if (data.length > 0) {
         mostrarToast(`Tienes ${data.length} alertas`)
     }
+}
+
+async function generarBoleta() {
+
+    const alumnos = await (await fetch('/alumnos', {
+        headers: { Authorization: token }
+    })).json()
+
+    const calificaciones = await (await fetch('/mis-calificaciones', {
+        headers: { Authorization: token }
+    })).json()
+
+    const hijos = alumnos.filter(a => payload.alumnos?.includes(a._id))
+
+    if (hijos.length === 0) {
+        alert('No hay alumnos')
+        return
+    }
+
+    const hijo = hijos[0] // 👉 puedes cambiar luego para seleccionar
+
+    const califs = calificaciones.filter(c => c.alumnoId === hijo._id)
+
+    let promedio = 0
+    if (califs.length > 0) {
+        promedio = (califs.reduce((a,c)=>a+c.calificacion,0)/califs.length).toFixed(1)
+    }
+
+    let html = `
+    <div style="font-family:sans-serif;">
+        <h2 style="text-align:center;">📄 Boleta Escolar</h2>
+        <hr>
+
+        <p><strong>Alumno:</strong> ${hijo.nombre}</p>
+        <p><strong>Grupo:</strong> ${hijo.grupo || 'N/A'}</p>
+
+        <table style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background:#0d6efd; color:white;">
+                    <th style="padding:8px;">Materia</th>
+                    <th style="padding:8px;">Calificación</th>
+                </tr>
+            </thead>
+            <tbody>
+    `
+
+    califs.forEach(c => {
+        html += `
+        <tr>
+            <td style="padding:8px; border:1px solid #ddd;">${c.materia}</td>
+            <td style="padding:8px; border:1px solid #ddd;">${c.calificacion}</td>
+        </tr>
+        `
+    })
+
+    html += `
+            </tbody>
+        </table>
+
+        <h3 style="margin-top:20px;">Promedio: ${promedio}</h3>
+    </div>
+    `
+
+    const elemento = document.getElementById('boleta')
+    elemento.innerHTML = html
+    elemento.style.display = 'block'
+
+    // 🔥 GENERAR PDF
+    html2pdf().from(elemento).save(`Boleta-${hijo.nombre}.pdf`)
+
+    elemento.style.display = 'none'
 }
 
 function mostrarToast(msg) {
