@@ -35,6 +35,68 @@ body.light .card {
     color: #1e293b;
 }
 
+/* 📱 BOTÓN MENÚ */
+.menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    display: none;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 768px) {
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0;
+        padding-top: 60px;
+    }
+
+    /* 🔥 TARJETAS MÁS COMPACTAS */
+    .card {
+        padding: 15px !important;
+    }
+
+    /* 🔥 TEXTO MÁS CHICO */
+    h5 {
+        font-size: 1rem;
+    }
+
+    h6 {
+        font-size: 0.9rem;
+    }
+
+    /* 🔥 ALERTAS */
+    .alert {
+        font-size: 0.85rem;
+        padding: 10px;
+    }
+
+    /* 🔥 TABS SCROLL */
+    .nav-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
+
+    .nav-tabs .nav-link {
+        white-space: nowrap;
+        font-size: 0.85rem;
+    }
+}
+
 /* SIDEBAR */
 .sidebar {
     width: 220px;
@@ -85,6 +147,17 @@ body.light .card {
     top: 10px;
     left: 10px;
     display: none;
+}
+
+.top-buttons {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .top-buttons {
+        right: 10px;
+        top: 50px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -183,6 +256,10 @@ async function actualizarAlertas() {
     if (data.length > 0) {
         mostrarToast(`Tienes ${data.length} alertas`)
     }
+}
+
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('active')
 }
 
 function mostrarToast(msg) {
@@ -373,6 +450,9 @@ function mostrarHijo(id) {
 
     document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'))
     event.target.classList.add('active')
+const sidebar = document.querySelector('.sidebar')
+if (sidebar) sidebar.classList.remove('active')
+
 }
 
 
