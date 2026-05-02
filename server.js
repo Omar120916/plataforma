@@ -330,6 +330,61 @@ app.use((req, res, next) => {
     next()
 })
 
+app.get('/alertas', verificarToken, async (req, res) => {
+
+    if (req.usuario.rol !== 'padre') {
+        return res.status(403).json({ mensaje: 'Solo padres' })
+    }
+
+    const hijos = req.usuario.alumnos
+
+    const alumnos = await Alumno.find({
+        _id: { $in: hijos }
+    })
+
+    const materias = await Materia.find()
+    const calificaciones = await Calificacion.find({
+        alumnoId: { $in: hijos }
+    })
+
+    let alertas = []
+
+    alumnos.forEach(alumno => {
+
+        alumno.materias.forEach(materiaId => {
+
+            const calif = calificaciones.find(c =>
+                c.alumnoId.toString() === alumno._id.toString() &&
+                c.materiaId.toString() === materiaId.toString()
+            )
+
+            const materia = materias.find(m =>
+                m._id.toString() === materiaId.toString()
+            )
+
+            // ❌ SIN CALIFICACIÓN
+            if (!calif) {
+                alertas.push({
+                    tipo: 'pendiente',
+                    mensaje: `${alumno.nombre} no tiene calificación en ${materia?.nombre}`
+                })
+            }
+
+            // ⚠️ BAJA CALIFICACIÓN
+            if (calif && calif.calificacion < 7) {
+                alertas.push({
+                    tipo: 'baja',
+                    mensaje: `${alumno.nombre} tiene ${calif.calificacion} en ${materia?.nombre}`
+                })
+            }
+
+        })
+
+    })
+
+    res.json(alertas)
+})
+
 // =====================
 // 🚀 SERVER
 // =====================
