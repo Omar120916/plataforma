@@ -79,7 +79,7 @@ function soloAdmin(req, res, next) {
 // =====================
 
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
-    const { nombre, usuario, password, rol, alumnos } = req.body
+    const { nombre, usuario, password, rol, alumnoId, alumnos } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
@@ -88,7 +88,12 @@ app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
         usuario,
         password: hash,
         rol,
-        alumnos : rol == 'padre' ? (alumnos || []) : []
+
+        // 🔥 SI ES ALUMNO
+        alumnoId: rol === 'alumno' ? alumnoId : null,
+
+        // 🔥 SI ES PADRE
+        alumnos: rol === 'padre' ? (alumnos || []) : []
     })
 
     await nuevo.save()
