@@ -364,11 +364,12 @@ app.get('/alertas', verificarToken, async (req, res) => {
 
             // ❌ SIN CALIFICACIÓN
             if (!calif) {
-                alertas.push({
-                    tipo: 'pendiente',
-                    mensaje: `${alumno.nombre} no tiene calificación en ${materia?.nombre}`
-                })
-            }
+            alertas.push({
+            id: alumno._id.toString() + '-' + materiaId.toString(), // 🔥 AQUÍ
+            tipo: 'pendiente',
+            mensaje: `${alumno.nombre} no tiene calificación en ${materia?.nombre}`
+    })
+}
 
             // ⚠️ BAJA CALIFICACIÓN
             if (calif && calif.calificacion < 7) {

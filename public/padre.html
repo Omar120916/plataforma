@@ -126,6 +126,19 @@ body.light .card {
     <button onclick="logout()" class="btn btn-sm btn-danger">Cerrar Sesión</button>
 </div>
 
+<div class="top-buttons">
+    <button onclick="toggleTheme()" class="btn btn-sm btn-outline-primary">🌙</button>
+
+    <button onclick="verAlertas()" class="btn btn-sm btn-warning position-relative">
+        🔔
+        <span id="badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            0
+        </span>
+    </button>
+
+    <button onclick="logout()" class="btn btn-sm btn-danger">Salir</button>
+</div>
+
 <!-- MAIN -->
 <div class="main">
     <h3 class="mb-4">👨‍👦 Panel del Papá</h3>
@@ -134,8 +147,81 @@ body.light .card {
     <div id="contenido"></div>
 </div>
 
+<div id="toast" style="
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: #0d6efd;
+color: white;
+padding: 15px;
+border-radius: 10px;
+display: none;
+z-index: 9999;
+">
+    🔔 Nueva alerta
+</div>
+
 <script>
 const token = localStorage.getItem('token')
+
+let alertasGlobal = []
+
+async function actualizarAlertas() {
+
+    const res = await fetch('/alertas', {
+        headers: { Authorization: token }
+    })
+
+    const data = await res.json()
+
+    alertasGlobal = data
+
+    // 🔴 ACTUALIZAR BADGE
+    document.getElementById('badge').innerText = data.length
+
+    // 🔔 MOSTRAR POPUP SI HAY NUEVAS
+    if (data.length > 0) {
+        mostrarToast(`Tienes ${data.length} alertas`)
+    }
+}
+
+function mostrarToast(msg) {
+    const toast = document.getElementById('toast')
+    toast.innerText = msg
+    toast.style.display = 'block'
+
+    setTimeout(() => {
+        toast.style.display = 'none'
+    }, 3000)
+}
+
+function verAlertas() {
+
+    let html = '<h3>🚨 Alertas</h3>'
+
+    if (alertasGlobal.length === 0) {
+        html += '<p class="text-success">Todo bien 👍</p>'
+    } else {
+
+        alertasGlobal.forEach(a => {
+
+            let color = 'warning'
+            if (a.tipo === 'pendiente') color = 'secondary'
+            if (a.tipo === 'baja') color = 'danger'
+
+            html += `
+            <div class="alert alert-${color}">
+                ${a.mensaje}
+            </div>
+            `
+        })
+    }
+
+    document.getElementById('contenido').innerHTML = html
+
+    // 👀 MARCAR COMO VISTO
+    document.getElementById('badge').innerText = 0
+}
 
 if (!token) {
     window.location.href = '/index.html'
@@ -289,9 +375,14 @@ function mostrarHijo(id) {
     event.target.classList.add('active')
 }
 
+
+
 // 🚀 INICIO
 cargar()
+actualizarAlertas()
+setInterval(actualizarAlertas, 5000)
 </script>
+
 
 </body>
 </html>
