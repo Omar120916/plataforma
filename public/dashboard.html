@@ -14,41 +14,51 @@ body {
 }
 
 /* SIDEBAR */
+/* SIDEBAR NORMAL */
 .sidebar {
     width: 220px;
     height: 100vh;
     position: fixed;
-    background: linear-gradient(180deg, #0d6efd, #00c6ff);
-    color: white;
     padding: 20px;
-}
-
-.sidebar h4 {
-    text-align: center;
-}
-
-.sidebar button {
-    width: 100%;
-    border: none;
-    background: none;
-    color: white;
-    padding: 12px;
-    text-align: left;
-    border-radius: 10px;
     transition: 0.3s;
-}
-
-.sidebar button:hover {
-    background: rgba(255,255,255,0.2);
 }
 
 /* MAIN */
 .main {
     margin-left: 220px;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+/* BOTÓN ☰ */
+.menu-toggle {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1001;
+    display: none;
+}
+
+/* 📱 MODO CELULAR */
+@media (max-width: 768px) {
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0;
+        padding-top: 60px;
+    }
 }
 
 /* CARD */
@@ -67,6 +77,7 @@ body {
 <button onclick="logout()" class="btn btn-danger btn-sm" style="position:fixed; top:10px; right:10px;">
 Cerrar Sesión
 </button>
+<button class="menu-toggle btn btn-primary" onclick="toggleMenu()">☰</button>
 
 <div class="sidebar">
     <h4>🎓 Admin</h4>
