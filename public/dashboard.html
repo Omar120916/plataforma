@@ -13,24 +13,63 @@ body {
     font-family: 'Segoe UI', sans-serif;
 }
 
-/* SIDEBAR */
-/* SIDEBAR NORMAL */
+/* 🔥 SIDEBAR PRO */
 .sidebar {
-    width: 220px;
+    width: 240px;
     height: 100vh;
     position: fixed;
     padding: 20px;
+    background: linear-gradient(180deg, #2563eb, #1e40af);
+    color: white;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.2);
     transition: 0.3s;
 }
 
-/* MAIN */
+/* TÍTULO */
+.sidebar h4 {
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* BOTONES */
+.sidebar button {
+    width: 100%;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: 0.3s;
+    font-weight: 500;
+}
+
+.sidebar button:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateX(5px);
+}
+
+/* 🧠 MAIN */
 .main {
-    margin-left: 220px;
-    padding: 20px;
+    margin-left: 240px;
+    padding: 30px;
+    background: #f8fafc;
+    min-height: 100vh;
     transition: 0.3s;
 }
 
-/* BOTÓN ☰ */
+/* 📦 CARD FORM */
+.card-form {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* ☰ BOTÓN */
 .menu-toggle {
     position: fixed;
     top: 10px;
@@ -39,7 +78,7 @@ body {
     display: none;
 }
 
-/* 📱 MODO CELULAR */
+/* 📱 RESPONSIVE */
 @media (max-width: 768px) {
 
     .menu-toggle {
@@ -59,15 +98,10 @@ body {
         margin-left: 0;
         padding-top: 60px;
     }
-}
 
-/* CARD */
-.card-form {
-    background: rgba(255,255,255,0.95);
-    padding: 30px;
-    border-radius: 15px;
-    width: 100%;
-    max-width: 420px;
+    .card-form {
+        max-width: 100%;
+    }
 }
 </style>
 </head>
