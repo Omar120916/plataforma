@@ -17,6 +17,21 @@ mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuel
 // 📦 MODELOS
 // =====================
 
+const Tarea = mongoose.model('Tarea', {
+    titulo: String,
+    descripcion: String,
+    materiaId: mongoose.Schema.Types.ObjectId,
+    fechaLimite: String, // YYYY-MM-DD
+    horaLimite: String   // HH:mm
+})
+
+const Entrega = mongoose.model('Entrega', {
+    tareaId: mongoose.Schema.Types.ObjectId,
+    alumnoId: mongoose.Schema.Types.ObjectId,
+    archivo: String,
+    fechaEntrega: Date
+})
+
 const Usuario = mongoose.model('Usuario', {
     nombre: String,
     usuario: String,
@@ -229,6 +244,21 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
     res.json(resultado)
 })
 
+app.post('/tareas', verificarToken, async (req, res) => {
+
+    const nueva = new Tarea(req.body)
+    await nueva.save()
+
+    res.json(nueva)
+})
+
+app.get('/tareas', verificarToken, async (req, res) => {
+
+    const tareas = await Tarea.find()
+
+    res.json(tareas)
+})
+
 // =====================
 // 📝 CALIFICACIONES
 // =====================
@@ -385,6 +415,57 @@ app.get('/alertas', verificarToken, async (req, res) => {
 
     res.json(alertas)
 })
+
+const multer = require('multer')
+
+const storage = multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname)
+    }
+})
+
+const upload = multer({ storage })
+
+app.post('/entregar-tarea', verificarToken, upload.single('archivo'), async (req, res) => {
+
+    const { tareaId } = req.body
+
+    const tarea = await Tarea.findById(tareaId)
+
+    if (!tarea) return res.status(404).json({ mensaje: 'Tarea no existe' })
+
+    // 🔥 VALIDACIÓN DE TIEMPO
+    const ahora = new Date()
+
+    const limite = new Date(`${tarea.fechaLimite}T${tarea.horaLimite}`)
+
+    if (ahora > limite) {
+        return res.status(400).json({ mensaje: 'Tiempo agotado ⛔' })
+    }
+
+    const existe = await Entrega.findOne({
+        tareaId,
+        alumnoId: req.usuario.alumnoId
+    })
+
+    if (existe) {
+        return res.status(400).json({ mensaje: 'Ya entregaste esta tarea' })
+    }
+
+    const nueva = new Entrega({
+        tareaId,
+        alumnoId: req.usuario.alumnoId,
+        archivo: req.file.filename,
+        fechaEntrega: new Date()
+    })
+
+    await nueva.save()
+
+    res.json({ mensaje: 'Tarea enviada 🔥' })
+})
+
+
 
 // =====================
 // 🚀 SERVER

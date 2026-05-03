@@ -359,6 +359,64 @@ async function cargarCalificaciones() {
     document.getElementById('contenido').innerHTML = html
 }
 
+async function cargarTareas() {
+
+    const res = await fetch('/tareas', {
+        headers: { Authorization: token }
+    })
+
+    const tareas = await res.json()
+
+    let html = '<h3>Tareas</h3>'
+
+    tareas.forEach(t => {
+
+        html += `
+        <div class="card p-3 mb-3">
+            <h5>${t.titulo}</h5>
+            <p>${t.descripcion}</p>
+            <small>Entrega: ${t.fechaLimite} ${t.horaLimite}</small>
+
+            <input type="file" id="file-${t._id}" class="form-control my-2">
+
+            <button class="btn btn-primary"
+                onclick="subirTarea('${t._id}')">
+                Subir tarea
+            </button>
+        </div>
+        `
+    })
+
+    document.getElementById('contenido').innerHTML = html
+}
+
+async function subirTarea(tareaId) {
+
+    const fileInput = document.getElementById(`file-${tareaId}`)
+    const file = fileInput.files[0]
+
+    if (!file) {
+        alert('Selecciona archivo')
+        return
+    }
+
+    const formData = new FormData()
+    formData.append('archivo', file)
+    formData.append('tareaId', tareaId)
+
+    const res = await fetch('/entregar-tarea', {
+        method: 'POST',
+        headers: {
+            Authorization: token
+        },
+        body: formData
+    })
+
+    const data = await res.json()
+
+    alert(data.mensaje || 'Error')
+}
+
 // 🚀 INICIO
 mostrar('inicio')
 </script>
