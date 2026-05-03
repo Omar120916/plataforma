@@ -226,6 +226,9 @@ function mostrar(tipo) {
         cont.innerHTML = formPadre()
         setTimeout(() => cargarAlumnosSelect(), 100)
     }
+
+    const sidebar = document.querySelector('.sidebar')
+    if (sidebar) sidebar.classList.remove('active')
 }
 
 // =======================
@@ -412,6 +415,10 @@ async function asignarMaterias() {
 function logout() {
     localStorage.removeItem('token')
     window.location.href = '/index.html'
+}
+
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('active')
 }
 
 // =======================
