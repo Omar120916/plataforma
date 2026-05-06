@@ -287,6 +287,226 @@ async function crearCarrera() {
     alert('Carrera creada 🔥')
 }
 
+async function cargarCarrerasAlumno() {
+
+    const res = await fetch('/carreras', {
+        headers: { Authorization: token }
+    })
+
+    const carreras = await res.json()
+
+    const select = document.getElementById('carrera')
+
+    select.innerHTML = carreras.map(c =>
+        `<option value="${c._id}">${c.nombre}</option>`
+    ).join('')
+
+    cargarMateriasAlumno()
+}
+
+async function cargarMateriasAlumno() {
+
+    const carreraId = document.getElementById('carrera').value
+
+    const res = await fetch(`/materias-por-carrera/${carreraId}`, {
+        headers: { Authorization: token }
+    })
+
+    const materias = await res.json()
+
+    const select = document.getElementById('materias')
+
+    select.innerHTML = materias.map(m =>
+        `<option value="${m._id}">${m.nombre}</option>`
+    ).join('')
+}
+
+async function cargarCarrerasMateria() {
+
+    const res = await fetch('/carreras', {
+        headers: { Authorization: token }
+    })
+
+    const carreras = await res.json()
+
+    document.getElementById('carrera').innerHTML =
+        carreras.map(c =>
+            `<option value="${c._id}">${c.nombre}</option>`
+        ).join('')
+}
+
+async function cargarMaestros() {
+
+    const res = await fetch('/usuarios', {
+        headers: { Authorization: token }
+    })
+
+    const usuarios = await res.json()
+
+    const maestros = usuarios.filter(u => u.rol === 'maestro')
+
+    document.getElementById('maestro').innerHTML =
+        maestros.map(m =>
+            `<option value="${m._id}">${m.nombre}</option>`
+        ).join('')
+}
+
+async function crearMateria() {
+
+    const nombre = document.getElementById('nombre').value
+    const carreraId = document.getElementById('carrera').value
+    const maestroId = document.getElementById('maestro').value
+
+    await fetch('/materias', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nombre,
+            carreraId,
+            maestroId
+        })
+    })
+
+    alert('Materia creada 🔥')
+}
+
+async function crearAlumno() {
+
+    const nombre = document.getElementById('nombre').value
+    const carreraId = document.getElementById('carrera').value
+    const usuario = document.getElementById('usuario').value
+    const password = document.getElementById('password').value
+    const grupo = document.getElementById('grupo').value
+
+    const materias = [...document.getElementById('materias').selectedOptions]
+        .map(o => o.value)
+
+    const alumno = await fetch('/alumnos', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nombre,
+            carreraId,
+            grupo,
+            materias
+        })
+    })
+
+    const alumnoData = await alumno.json()
+
+    await fetch('/registro', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nombre,
+            usuario,
+            password,
+            rol: 'alumno',
+            alumnoId: alumnoData._id
+        })
+    })
+
+    alert('Alumno registrado 🔥')
+}
+
+async function cargarAlumnos() {
+
+    const res = await fetch('/alumnos', {
+        headers: { Authorization: token }
+    })
+
+    const alumnos = await res.json()
+
+    document.getElementById('alumno').innerHTML =
+        alumnos.map(a =>
+            `<option value="${a._id}">${a.nombre}</option>`
+        ).join('')
+}
+
+async function cargarMaterias() {
+
+    const res = await fetch('/materias', {
+        headers: { Authorization: token }
+    })
+
+    const materias = await res.json()
+
+    document.getElementById('materias').innerHTML =
+        materias.map(m =>
+            `<option value="${m._id}">${m.nombre}</option>`
+        ).join('')
+}
+
+async function asignarMaterias() {
+
+    const alumnoId = document.getElementById('alumno').value
+
+    const materias = [...document.getElementById('materias').selectedOptions]
+        .map(o => o.value)
+
+    await fetch(`/alumnos/${alumnoId}/materias`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({ materias })
+    })
+
+    alert('Materias asignadas 🔥')
+}
+
+async function cargarAlumnosSelect() {
+
+    const res = await fetch('/alumnos', {
+        headers: { Authorization: token }
+    })
+
+    const alumnos = await res.json()
+
+    document.getElementById('alumno').innerHTML =
+        alumnos.map(a =>
+            `<option value="${a._id}">${a.nombre}</option>`
+        ).join('')
+}
+
+async function crearPadre() {
+
+    const nombre = document.getElementById('nombre').value
+    const usuario = document.getElementById('usuario').value
+    const password = document.getElementById('password').value
+
+    const alumnos = [...document.getElementById('alumno').selectedOptions]
+        .map(o => o.value)
+
+    await fetch('/registro', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nombre,
+            usuario,
+            password,
+            rol: 'padre',
+            alumnos
+        })
+    })
+
+    alert('Padre registrado 🔥')
+}
+
+
 /* 🔽 EL RESTO DE TUS FUNCIONES QUEDAN IGUAL 🔽 */
 
 function logout() {
