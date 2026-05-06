@@ -457,6 +457,78 @@ app.get('/alertas', verificarToken, async (req, res) => {
 
     })
 
+    // =====================
+// 📝 ALERTAS DE TAREAS
+// =====================
+
+const tareas = await Tarea.find()
+const entregas = await Entrega.find({
+    alumnoId: { $in: hijos }
+})
+
+for (let alumno of alumnos) {
+
+    // 🔥 TAREAS DEL GRUPO
+    const tareasAlumno = tareas.filter(t =>
+        t.grupo === alumno.grupo &&
+        alumno.materias.some(m =>
+            m.toString() === t.materiaId.toString()
+        )
+    )
+
+    for (let tarea of tareasAlumno) {
+
+        const entrega = entregas.find(e =>
+            e.tareaId.toString() === tarea._id.toString() &&
+            e.alumnoId.toString() === alumno._id.toString()
+        )
+
+        // ❌ NO ENTREGÓ
+        if (!entrega) {
+
+            alertas.push({
+                tipo: 'tarea-pendiente',
+                mensaje:
+                `${alumno.nombre} no ha entregado la tarea "${tarea.titulo}"`
+            })
+        }
+
+        // ✅ ENTREGÓ
+        if (entrega) {
+
+            alertas.push({
+                tipo: 'tarea-entregada',
+                mensaje:
+                `${alumno.nombre} entregó "${tarea.titulo}"`
+            })
+
+            // 🔥 YA CALIFICADA
+            if (
+                entrega.calificacion !== undefined &&
+                entrega.calificacion !== null
+            ) {
+
+                alertas.push({
+                    tipo: 'tarea-calificada',
+                    mensaje:
+                    `${alumno.nombre} obtuvo ${entrega.calificacion} en "${tarea.titulo}"`
+                })
+
+                // ⚠️ BAJA
+                if (entrega.calificacion < 7) {
+
+                    alertas.push({
+                        tipo: 'tarea-baja',
+                        mensaje:
+                        `${alumno.nombre} sacó baja calificación en "${tarea.titulo}"`
+                    })
+                }
+            }
+        }
+
+    }
+}
+
     res.json(alertas)
 })
 
