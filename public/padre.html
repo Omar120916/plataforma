@@ -288,7 +288,20 @@ async function generarBoleta() {
     elemento.style.display = 'block'
 
     // 🔥 GENERAR PDF
-    html2pdf().from(elemento).save(`Boleta-${hijo.nombre}.pdf`)
+    setTimeout(() => {
+
+    html2pdf()
+    .set({
+        margin: 10,
+        filename: `Boleta-${hijo.nombre}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(elemento)
+    .save()
+
+}, 500)
 
     elemento.style.display = 'none'
 }
