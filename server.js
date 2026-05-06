@@ -7,6 +7,7 @@ const app = express()
 
 app.use(express.json())
 app.use(express.static('public'))
+app.use('/uploads', express.static('uploads'))
 
 // 🔥 CONEXIÓN
 mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuela')
@@ -455,6 +456,30 @@ app.get('/alertas', verificarToken, async (req, res) => {
     })
 
     res.json(alertas)
+})
+
+app.get('/entregas/:tareaId', verificarToken, async (req, res) => {
+
+    const entregas = await Entrega.find({
+        tareaId: req.params.tareaId
+    })
+
+    const alumnos = await Alumno.find()
+
+    const resultado = entregas.map(e => {
+
+        const alumno = alumnos.find(a =>
+            a._id.toString() === e.alumnoId.toString()
+        )
+
+        return {
+            alumno: alumno?.nombre || 'Alumno',
+            archivo: e.archivo,
+            fechaEntrega: e.fechaEntrega
+        }
+    })
+
+    res.json(resultado)
 })
 
 const multer = require('multer')

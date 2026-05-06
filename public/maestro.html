@@ -403,6 +403,13 @@ async function cargarTareas() {
         <div class="card p-3 mb-3 shadow">
             <h5>${t.titulo}</h5>
 
+            <button class="btn btn-success btn-sm mt-2"
+    onclick="verEntregas('${t._id}')">
+    Ver entregas
+</button>
+
+<div id="entregas-${t._id}" class="mt-2"></div>
+
             <p>${t.descripcion || ''}</p>
 
             <small class="d-block">
