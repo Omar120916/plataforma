@@ -31,7 +31,9 @@ const Entrega = mongoose.model('Entrega', {
     tareaId: mongoose.Schema.Types.ObjectId,
     alumnoId: mongoose.Schema.Types.ObjectId,
     archivo: String,
-    fechaEntrega: Date
+    fechaEntrega: Date,
+    calificacion: Number,
+    comentario: String
 })
 
 const Usuario = mongoose.model('Usuario', {
@@ -473,13 +475,31 @@ app.get('/entregas/:tareaId', verificarToken, async (req, res) => {
         )
 
         return {
-            alumno: alumno?.nombre || 'Alumno',
-            archivo: e.archivo,
-            fechaEntrega: e.fechaEntrega
-        }
+    _id: e._id,
+    alumno: alumno?.nombre || 'Alumno',
+    archivo: e.archivo,
+    fechaEntrega: e.fechaEntrega,
+
+    calificacion: e.calificacion,
+    comentario: e.comentario
+}
     })
 
     res.json(resultado)
+})
+
+app.put('/calificar-tarea/:id', verificarToken, async (req, res) => {
+
+    const { calificacion, comentario } = req.body
+
+    await Entrega.findByIdAndUpdate(req.params.id, {
+        calificacion,
+        comentario
+    })
+
+    res.json({
+        mensaje: 'Tarea calificada 🔥'
+    })
 })
 
 const multer = require('multer')
@@ -529,6 +549,30 @@ app.post('/entregar-tarea', verificarToken, upload.single('archivo'), async (req
     await nueva.save()
 
     res.json({ mensaje: 'Tarea enviada 🔥' })
+})
+
+app.get('/mis-entregas', verificarToken, async (req, res) => {
+
+    const entregas = await Entrega.find({
+        alumnoId: req.usuario.alumnoId
+    })
+
+    const tareas = await Tarea.find()
+
+    const resultado = entregas.map(e => {
+
+        const tarea = tareas.find(t =>
+            t._id.toString() === e.tareaId.toString()
+        )
+
+        return {
+            tarea: tarea?.titulo,
+            calificacion: e.calificacion,
+            comentario: e.comentario
+        }
+    })
+
+    res.json(resultado)
 })
 
 

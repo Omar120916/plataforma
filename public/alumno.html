@@ -163,6 +163,7 @@ body.light .card {
     <button onclick="mostrar('materias')">📚 Materias</button>
     <button onclick="mostrar('calificaciones')">📊 Calificaciones</button>
     <button onclick="mostrar('tareas')">📝 Tareas</button>
+    <button onclick="mostrar('misTareas')">⭐ Mis tareas calificadas</button>
 
 </div>
 
@@ -228,6 +229,10 @@ function mostrar(tipo) {
 
     if (tipo === 'tareas') {
     cargarTareas()
+
+    if (tipo === 'misTareas') {
+        cargarMisEntregas()
+    }
 }
 
     // 👇 CERRAR MENÚ EN MÓVIL
@@ -462,6 +467,48 @@ async function subirTarea(tareaId) {
     const data = await res.json()
 
     alert(data.mensaje || 'Error')
+}
+
+async function cargarMisEntregas() {
+
+    const res = await fetch('/mis-entregas', {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const data = await res.json()
+
+    let html = '<h3>⭐ Mis tareas</h3>'
+
+    if (data.length === 0) {
+        html += `
+        <div class="card p-3">
+            No tienes tareas calificadas
+        </div>
+        `
+    }
+
+    data.forEach(t => {
+
+        html += `
+        <div class="card p-3 mb-3">
+
+            <h5>${t.tarea}</h5>
+
+            <h4 class="text-success">
+                ${t.calificacion ?? 'Sin calificar'}
+            </h4>
+
+            <p>
+                ${t.comentario || 'Sin comentarios'}
+            </p>
+
+        </div>
+        `
+    })
+
+    document.getElementById('contenido').innerHTML = html
 }
 
 // 🚀 INICIO

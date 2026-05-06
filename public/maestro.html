@@ -515,6 +515,26 @@ async function verEntregas(tareaId) {
                     Ver archivo
                 </a>
 
+                <div class="mt-2">
+
+    <input type="number"
+        id="cal-${e._id}"
+        class="form-control mb-2"
+        placeholder="Calificación">
+
+    <textarea
+        id="com-${e._id}"
+        class="form-control mb-2"
+        placeholder="Comentario"></textarea>
+
+    <button class="btn btn-success btn-sm"
+        onclick="calificarEntrega('${e._id}')">
+
+        Calificar
+    </button>
+
+</div>
+
             </div>
             `
         })
@@ -522,6 +542,31 @@ async function verEntregas(tareaId) {
 
     document.getElementById(`entregas-${tareaId}`)
         .innerHTML = html
+}
+
+async function calificarEntrega(id) {
+
+    const calificacion =
+        document.getElementById(`cal-${id}`).value
+
+    const comentario =
+        document.getElementById(`com-${id}`).value
+
+    const res = await fetch(`/calificar-tarea/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            calificacion,
+            comentario
+        })
+    })
+
+    const data = await res.json()
+
+    alert(data.mensaje)
 }
 
 // 💾 GUARDAR CALIFICACIÓN
