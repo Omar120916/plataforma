@@ -492,10 +492,28 @@ app.put('/calificar-tarea/:id', verificarToken, async (req, res) => {
 
     const { calificacion, comentario } = req.body
 
-    await Entrega.findByIdAndUpdate(req.params.id, {
-        calificacion,
-        comentario
-    })
+    const entrega = await Entrega.findById(req.params.id)
+
+    if (!entrega) {
+        return res.status(404).json({
+            mensaje: 'Entrega no encontrada'
+        })
+    }
+
+    // 🔒 YA CALIFICADA
+    if (
+        entrega.calificacion !== undefined &&
+        entrega.calificacion !== null
+    ) {
+        return res.status(400).json({
+            mensaje: 'Esta tarea ya fue calificada 🔒'
+        })
+    }
+
+    entrega.calificacion = calificacion
+    entrega.comentario = comentario
+
+    await entrega.save()
 
     res.json({
         mensaje: 'Tarea calificada 🔥'
