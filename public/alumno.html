@@ -162,6 +162,7 @@ body.light .card {
     <button onclick="mostrar('inicio')">🏠 Inicio</button>
     <button onclick="mostrar('materias')">📚 Materias</button>
     <button onclick="mostrar('calificaciones')">📊 Calificaciones</button>
+    <button onclick="mostrar('tareas')">📝 Tareas</button>
 
 </div>
 
@@ -224,6 +225,10 @@ function mostrar(tipo) {
     if (tipo === 'calificaciones') {
         cargarCalificaciones()
     }
+
+    if (tipo === 'tareas') {
+    cargarTareas()
+}
 
     // 👇 CERRAR MENÚ EN MÓVIL
     const sidebar = document.querySelector('.sidebar')
@@ -361,30 +366,72 @@ async function cargarCalificaciones() {
 
 async function cargarTareas() {
 
-    const res = await fetch('/tareas', {
+    const res = await fetch('/mis-tareas', {
         headers: { Authorization: token }
     })
 
     const tareas = await res.json()
 
-    let html = '<h3>Tareas</h3>'
+    let html = '<h3 class="mb-4">📝 Mis tareas</h3>'
+
+    if (tareas.length === 0) {
+        html += `
+        <div class="card p-4 shadow text-center">
+            <h5>🎉 No tienes tareas pendientes</h5>
+        </div>
+        `
+    }
 
     tareas.forEach(t => {
 
-        html += `
-        <div class="card p-3 mb-3">
-            <h5>${t.titulo}</h5>
-            <p>${t.descripcion}</p>
-            <small>Entrega: ${t.fechaLimite} ${t.horaLimite}</small>
+        const limite = new Date(`${t.fechaLimite}T${t.horaLimite}`)
+        const ahora = new Date()
 
-            <input type="file" id="file-${t._id}" class="form-control my-2">
+        const vencida = ahora > limite
+
+        html += `
+        <div class="card p-3 mb-3 shadow">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <h5>${t.titulo}</h5>
+
+                ${
+                    vencida
+                    ? '<span class="badge bg-danger">Cerrada</span>'
+                    : '<span class="badge bg-success">Activa</span>'
+                }
+            </div>
+
+            <p>${t.descripcion}</p>
+
+            <small class="text-muted">
+                📅 ${t.fechaLimite} ⏰ ${t.horaLimite}
+            </small>
+        `
+
+        if (!vencida) {
+
+            html += `
+            <input type="file"
+                id="file-${t._id}"
+                class="form-control my-3">
 
             <button class="btn btn-primary"
                 onclick="subirTarea('${t._id}')">
-                Subir tarea
+
+                📤 Subir tarea
             </button>
-        </div>
-        `
+            `
+        } else {
+
+            html += `
+            <div class="alert alert-danger mt-3 mb-0">
+                ⛔ Tiempo agotado
+            </div>
+            `
+        }
+
+        html += `</div>`
     })
 
     document.getElementById('contenido').innerHTML = html

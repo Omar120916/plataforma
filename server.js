@@ -21,6 +21,7 @@ const Tarea = mongoose.model('Tarea', {
     titulo: String,
     descripcion: String,
     materiaId: mongoose.Schema.Types.ObjectId,
+    grupo: String,
     fechaLimite: String, // YYYY-MM-DD
     horaLimite: String   // HH:mm
 })
@@ -246,7 +247,21 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
 app.post('/tareas', verificarToken, async (req, res) => {
 
-    const nueva = new Tarea(req.body)
+    const { titulo, descripcion, materiaId, grupo, fechaLimite, horaLimite } = req.body
+
+    if (!titulo || !materiaId || !grupo) {
+        return res.status(400).json({ mensaje: 'Datos incompletos' })
+    }
+
+    const nueva = new Tarea({
+        titulo,
+        descripcion,
+        materiaId,
+        grupo,
+        fechaLimite,
+        horaLimite
+    })
+
     await nueva.save()
 
     res.json(nueva)
@@ -254,7 +269,33 @@ app.post('/tareas', verificarToken, async (req, res) => {
 
 app.get('/tareas', verificarToken, async (req, res) => {
 
-    const tareas = await Tarea.find()
+    // si es maestro → solo sus materias
+    if (req.usuario.rol === 'maestro') {
+        const materias = await Materia.find({ maestroId: req.usuario.id })
+
+        const tareas = await Tarea.find({
+            materiaId: { $in: materias.map(m => m._id) }
+        })
+
+        return res.json(tareas)
+    }
+
+    // admin → todas
+    res.json(await Tarea.find())
+})
+
+app.get('/mis-tareas', verificarToken, async (req, res) => {
+
+    if (!req.usuario.alumnoId) return res.json([])
+
+    const alumno = await Alumno.findById(req.usuario.alumnoId)
+
+    if (!alumno) return res.json([])
+
+    const tareas = await Tarea.find({
+        grupo: alumno.grupo,
+        materiaId: { $in: alumno.materias }
+    })
 
     res.json(tareas)
 })
