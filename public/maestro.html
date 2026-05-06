@@ -156,6 +156,7 @@ input.form-control-sm {
 <div class="sidebar">
     <button onclick="mostrar('materias')">📚 Mis materias</button>
     <button onclick="mostrar('alumnos')">👨‍🎓 Alumnos</button>
+    <button onclick="mostrar('tareas')">📝 Tareas</button>
     
 </div>
 
@@ -200,10 +201,15 @@ function toggleMenu() {
 
 // 🔄 CAMBIAR VISTA
 function mostrar(tipo) {
+
     if (tipo === 'materias') cargarMaterias()
+
     if (tipo === 'alumnos') cargarAlumnos()
 
+    if (tipo === 'tareas') cargarTareas()
+
     const sidebar = document.querySelector('.sidebar')
+
     if (sidebar) sidebar.classList.remove('active')
 }
 
@@ -323,6 +329,144 @@ async function cargarAlumnos() {
     html += '</div>'
 
     document.getElementById('contenido').innerHTML = html
+}
+
+// 📝 TAREAS
+async function cargarTareas() {
+
+    const [resMaterias, resTareas] = await Promise.all([
+        fetch('/mis-materias', {
+            headers: { Authorization: token }
+        }),
+        fetch('/tareas', {
+            headers: { Authorization: token }
+        })
+    ])
+
+    const materias = await resMaterias.json()
+    const tareas = await resTareas.json()
+
+    let html = `
+    <div class="card p-4 mb-4 shadow">
+        <h3 class="mb-3">📝 Crear tarea</h3>
+
+        <input id="titulo" class="form-control mb-2" placeholder="Título">
+
+        <textarea id="descripcion"
+            class="form-control mb-2"
+            placeholder="Descripción"></textarea>
+
+        <select id="materia" class="form-select mb-2">
+            ${materias.map(m =>
+                `<option value="${m._id}">
+                    ${m.nombre}
+                </option>`
+            ).join('')}
+        </select>
+
+        <input id="grupo"
+            class="form-control mb-2"
+            placeholder="Grupo">
+
+        <label>Fecha límite</label>
+        <input type="date"
+            id="fecha"
+            class="form-control mb-2">
+
+        <label>Hora límite</label>
+        <input type="time"
+            id="hora"
+            class="form-control mb-3">
+
+        <button class="btn btn-primary w-100"
+            onclick="crearTarea()">
+            Crear tarea
+        </button>
+    </div>
+
+    <h3 class="mb-3">📚 Tareas creadas</h3>
+    `
+
+    if (tareas.length === 0) {
+        html += `
+        <div class="card p-3">
+            No hay tareas aún
+        </div>
+        `
+    }
+
+    tareas.forEach(t => {
+
+        const materia = materias.find(m => m._id === t.materiaId)
+
+        html += `
+        <div class="card p-3 mb-3 shadow">
+            <h5>${t.titulo}</h5>
+
+            <p>${t.descripcion || ''}</p>
+
+            <small class="d-block">
+                📚 Materia:
+                ${materia?.nombre || 'Sin materia'}
+            </small>
+
+            <small class="d-block">
+                👥 Grupo:
+                ${t.grupo}
+            </small>
+
+            <small class="d-block text-danger">
+                ⏰ Límite:
+                ${t.fechaLimite} ${t.horaLimite}
+            </small>
+        </div>
+        `
+    })
+
+    document.getElementById('contenido').innerHTML = html
+}
+
+// ➕ CREAR TAREA
+async function crearTarea() {
+
+    const titulo = document.getElementById('titulo').value
+
+    const descripcion =
+        document.getElementById('descripcion').value
+
+    const materiaId =
+        document.getElementById('materia').value
+
+    const grupo =
+        document.getElementById('grupo').value
+
+    const fechaLimite =
+        document.getElementById('fecha').value
+
+    const horaLimite =
+        document.getElementById('hora').value
+
+    const res = await fetch('/tareas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+        body: JSON.stringify({
+            titulo,
+            descripcion,
+            materiaId,
+            grupo,
+            fechaLimite,
+            horaLimite
+        })
+    })
+
+    const data = await res.json()
+
+    alert(data.mensaje || 'Tarea creada 🔥')
+
+    cargarTareas()
 }
 
 // 💾 GUARDAR CALIFICACIÓN
