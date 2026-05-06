@@ -476,6 +476,54 @@ async function crearTarea() {
     cargarTareas()
 }
 
+async function verEntregas(tareaId) {
+
+    const res = await fetch(`/entregas/${tareaId}`, {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const data = await res.json()
+
+    let html = ''
+
+    if (data.length === 0) {
+
+        html = `
+        <div class="alert alert-warning mt-2">
+            Nadie ha entregado 😢
+        </div>
+        `
+    } else {
+
+        data.forEach(e => {
+
+            html += `
+            <div class="card p-2 mb-2">
+
+                <b>👨‍🎓 ${e.alumno}</b>
+
+                <small class="d-block">
+                    📅 ${new Date(e.fechaEntrega)
+                        .toLocaleString()}
+                </small>
+
+                <a href="/uploads/${e.archivo}"
+                    target="_blank"
+                    class="btn btn-primary btn-sm mt-2">
+                    Ver archivo
+                </a>
+
+            </div>
+            `
+        })
+    }
+
+    document.getElementById(`entregas-${tareaId}`)
+        .innerHTML = html
+}
+
 // 💾 GUARDAR CALIFICACIÓN
 async function guardarCal(alumnoId, materiaId) {
 
