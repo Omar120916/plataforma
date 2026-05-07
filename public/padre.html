@@ -150,6 +150,26 @@ body.light .card {
     <h3 class="mb-4">👨‍👦 Panel del Papá</h3>
     <ul class="nav nav-tabs mb-3" id="tabs"></ul>
     <div id="contenido"></div>
+
+<div class="card p-3">
+
+    <div id="chat" style="
+        height:300px;
+        overflow:auto;
+    "></div>
+
+    <input id="mensaje"
+        class="form-control mt-2"
+        placeholder="Mensaje">
+
+    <button class="btn btn-primary mt-2"
+        onclick="enviarMensaje()">
+        Enviar
+    </button>
+
+</div>
+
+
 </div>
 
 <!-- 🔔 TOAST -->
@@ -177,8 +197,18 @@ display:none;
 ">
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
+
 const token = localStorage.getItem('token')
+
+const socket = io()
+
+const payload = JSON.parse(
+    atob(token.split('.')[1])
+)
+
+socket.emit('entrar', payload.id)
 
 if (!token) window.location.href = '/index.html'
 
@@ -399,8 +429,7 @@ function verAlertas() {
     document.getElementById('badge').innerText = 0
 }
 
-// 🔍 TOKEN
-const payload = JSON.parse(atob(token.split('.')[1]))
+
 
 // 👨‍👦 DASHBOARD
 async function cargar() {
@@ -466,12 +495,114 @@ function mostrarHijo(id) {
     document.querySelector('.sidebar')?.classList.remove('active')
 }
 
+// =====================
+// 💬 CHAT
+// =====================
+
+let receptorId = ''
+
+// 🔥 CARGAR USUARIOS
+async function cargarUsuariosChat() {
+
+    const res = await fetch('/usuarios', {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const usuarios = await res.json()
+
+    let html = `
+        <option value="">
+            Selecciona usuario
+        </option>
+    `
+
+    usuarios.forEach(u => {
+
+        // 🚫 NO MOSTRARSE A SÍ MISMO
+        if (u._id !== payload.id) {
+
+            html += `
+                <option value="${u._id}">
+                    ${u.nombre} (${u.rol})
+                </option>
+            `
+        }
+    })
+
+    document.getElementById('usuariosChat')
+        .innerHTML = html
+}
+
+// 👤 SELECCIONAR USUARIO
+function seleccionarUsuario() {
+
+    receptorId =
+        document.getElementById('usuariosChat').value
+}
+
+// 📤 ENVIAR MENSAJE
+function enviarMensaje() {
+
+    const mensaje =
+        document.getElementById('mensaje').value
+
+    if (!receptorId) {
+        alert('Selecciona usuario')
+        return
+    }
+
+    if (!mensaje) return
+
+    socket.emit('mensaje', {
+
+        de: payload.id,
+
+        para: receptorId,
+
+        mensaje
+    })
+
+    document.getElementById('mensaje').value = ''
+}
+
+// 📥 RECIBIR MENSAJES
+socket.on('mensaje', (msg) => {
+
+    document.getElementById('chat').innerHTML += `
+
+        <div class="mb-2">
+
+            <b>
+                ${msg.de === payload.id
+                    ? 'Tú'
+                    : 'Ellos'}
+                :
+            </b>
+
+            ${msg.mensaje}
+
+        </div>
+    `
+
+    // 🔥 AUTO SCROLL
+    const chat =
+        document.getElementById('chat')
+
+    chat.scrollTop =
+        chat.scrollHeight
+})
+
 // 🚀 INICIO
 cargar()
+
+cargarUsuariosChat()
+
 actualizarAlertas()
+
 setInterval(actualizarAlertas, 5000)
 
 </script>
-
 </body>
 </html>

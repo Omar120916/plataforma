@@ -168,11 +168,53 @@ body.light .card {
 </div>
 
 <!-- MAIN -->
-<div class="main" id="contenido"></div>
+<!-- MAIN -->
+<div class="main">
 
+    <div id="contenido"></div>
+
+    <!-- 💬 CHAT -->
+    <div class="card p-3 mt-4">
+
+        <h5>💬 Chat</h5>
+
+        <select id="usuariosChat"
+            class="form-select mb-2"
+            onchange="seleccionarUsuario()">
+
+        </select>
+
+        <div id="chat" style="
+            height:300px;
+            overflow:auto;
+            border:1px solid #ccc;
+            border-radius:10px;
+            padding:10px;
+        "></div>
+
+        <input id="mensaje"
+            class="form-control mt-2"
+            placeholder="Mensaje">
+
+        <button class="btn btn-primary mt-2"
+            onclick="enviarMensaje()">
+
+            Enviar
+        </button>
+
+    </div>
+
+</div>
+<script src="/socket.io/socket.io.js"></script>
 <script>
     
 const token = localStorage.getItem('token')
+
+const socket = io()
+
+const payload = JSON.parse(atob(token.split('.')[1]))
+
+socket.emit('entrar', payload.id)
 
 if (!token) {
     alert('Sesión expirada, vuelve a iniciar sesión')
@@ -512,8 +554,108 @@ async function cargarMisEntregas() {
     document.getElementById('contenido').innerHTML = html
 }
 
+// =====================
+// 💬 CHAT
+// =====================
+
+let receptorId = ''
+
+// 🔥 CARGAR USUARIOS
+async function cargarUsuariosChat() {
+
+    const res = await fetch('/usuarios', {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const usuarios = await res.json()
+
+    let html = `
+        <option value="">
+            Selecciona usuario
+        </option>
+    `
+
+    usuarios.forEach(u => {
+
+        // 🚫 NO MOSTRARSE A SÍ MISMO
+        if (u._id !== payload.id) {
+
+            html += `
+                <option value="${u._id}">
+                    ${u.nombre} (${u.rol})
+                </option>
+            `
+        }
+    })
+
+    document.getElementById('usuariosChat')
+        .innerHTML = html
+}
+
+// 👤 SELECCIONAR
+function seleccionarUsuario() {
+
+    receptorId =
+        document.getElementById('usuariosChat').value
+}
+
+// 📤 ENVIAR
+function enviarMensaje() {
+
+    const mensaje =
+        document.getElementById('mensaje').value
+
+    if (!receptorId) {
+        alert('Selecciona usuario')
+        return
+    }
+
+    if (!mensaje) return
+
+    socket.emit('mensaje', {
+
+        de: payload.id,
+
+        para: receptorId,
+
+        mensaje
+    })
+
+    document.getElementById('mensaje').value = ''
+}
+
+// 📥 RECIBIR
+socket.on('mensaje', (msg) => {
+
+    document.getElementById('chat').innerHTML += `
+
+        <div class="mb-2">
+
+            <b>
+                ${msg.de === payload.id
+                    ? 'Tú'
+                    : 'Ellos'}
+                :
+            </b>
+
+            ${msg.mensaje}
+
+        </div>
+    `
+
+    const chat =
+        document.getElementById('chat')
+
+    chat.scrollTop =
+        chat.scrollHeight
+})
+
 // 🚀 INICIO
 mostrar('inicio')
+
+cargarUsuariosChat()
 </script>
 
 </body>

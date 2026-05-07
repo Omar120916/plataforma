@@ -2,6 +2,8 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const http = require('http')
+const { Server } = require('socket.io')
 
 const app = express()
 
@@ -68,6 +70,18 @@ const Calificacion = mongoose.model('Calificacion', {
     materiaId: mongoose.Schema.Types.ObjectId,
     calificacion: Number
 })
+
+const Mensaje = mongoose.model('Mensaje', {
+    de: String,
+    para: String,
+    mensaje: String,
+    fecha: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+
 
 // =====================
 // 🔐 MIDDLEWARE
@@ -665,10 +679,59 @@ app.get('/mis-entregas', verificarToken, async (req, res) => {
     res.json(resultado)
 })
 
+app.get('/mensajes/:usuario', verificarToken, async (req, res) => {
+
+    const miId = req.usuario.id
+    const otro = req.params.usuario
+
+    const mensajes = await Mensaje.find({
+        $or: [
+            { de: miId, para: otro },
+            { de: otro, para: miId }
+        ]
+    }).sort({ fecha: 1 })
+
+    res.json(mensajes)
+})
+
 
 
 // =====================
 // 🚀 SERVER
 // =====================
 
-app.listen(3000, () => console.log('Servidor listo 🔥'))
+const server = http.createServer(app)
+
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+})
+
+io.on('connection', (socket) => {
+
+    console.log('Usuario conectado 🔥')
+
+    socket.on('entrar', (usuarioId) => {
+        socket.join(usuarioId)
+    })
+
+    socket.on('mensaje', async (data) => {
+
+        const nuevo = new Mensaje({
+            de: data.de,
+            para: data.para,
+            mensaje: data.mensaje
+        })
+
+        await nuevo.save()
+
+        io.to(data.para).emit('mensaje', nuevo)
+        io.to(data.de).emit('mensaje', nuevo)
+    })
+
+})
+
+server.listen(3000, () => {
+    console.log('Servidor listo 🔥')
+})

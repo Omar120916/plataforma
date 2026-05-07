@@ -96,6 +96,12 @@ body.light .card {
     border-radius: 15px;
 }
 
+/* CHAT */
+#chat {
+    height: 300px;
+    overflow-y: auto;
+}
+
 /* RESPONSIVE */
 .menu-toggle {
     position: fixed;
@@ -105,7 +111,10 @@ body.light .card {
 }
 
 @media (max-width: 768px) {
-    .menu-toggle { display: block; }
+
+    .menu-toggle {
+        display: block;
+    }
 
     .sidebar {
         transform: translateX(-100%);
@@ -122,13 +131,13 @@ body.light .card {
     }
 
     .card h5 {
-    font-weight: bold;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 5px;
+        font-weight: bold;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
     }
 
-input.form-control-sm {
-    font-size: 0.85rem;
+    input.form-control-sm {
+        font-size: 0.85rem;
     }
 }
 </style>
@@ -140,55 +149,122 @@ input.form-control-sm {
     <h5>👨‍🏫 Maestro Dashboard</h5>
 </nav>
 
-<button onclick="logout()" class="btn btn-sm btn-danger" style="position:fixed; top: 50px; right: 10px;">
-        Cerrar Sesion
-    </button>
-<button class="menu-toggle btn btn-primary" onclick="toggleMenu()">☰</button>
-<!-- BOTÓN TEMA -->
-<button onclick="toggleTheme()" class="btn btn-sm btn-outline-light" style="position: fixed; top: 10px; right: 10px;">
-🌙 / ☀️
+<button onclick="logout()" class="btn btn-sm btn-danger"
+    style="position:fixed; top:50px; right:10px;">
+    Cerrar Sesión
 </button>
 
-<!-- MENÚ ☰ -->
-<button class="menu-toggle" onclick="toggleMenu()">☰</button>
+<button class="menu-toggle btn btn-primary"
+    onclick="toggleMenu()">
+    ☰
+</button>
+
+<button onclick="toggleTheme()"
+    class="btn btn-sm btn-outline-light"
+    style="position:fixed; top:10px; right:10px;">
+    🌙 / ☀️
+</button>
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-    <button onclick="mostrar('materias')">📚 Mis materias</button>
-    <button onclick="mostrar('alumnos')">👨‍🎓 Alumnos</button>
-    <button onclick="mostrar('tareas')">📝 Tareas</button>
-    
+
+    <button onclick="mostrar('materias')">
+        📚 Mis materias
+    </button>
+
+    <button onclick="mostrar('alumnos')">
+        👨‍🎓 Alumnos
+    </button>
+
+    <button onclick="mostrar('tareas')">
+        📝 Tareas
+    </button>
+
 </div>
 
 <!-- MAIN -->
-<div class="main" id="contenido"></div>
+<div class="main">
+
+    <div id="contenido"></div>
+
+    <!-- CHAT -->
+    <div class="card p-3 mt-4">
+
+    <h5>💬 Chat</h5>
+
+    <select id="usuariosChat"
+        class="form-select mb-2"
+        onchange="seleccionarUsuario()">
+
+    </select>
+
+    <div id="chat" style="
+        height:300px;
+        overflow:auto;
+        border:1px solid #ccc;
+        border-radius:10px;
+        padding:10px;
+    "></div>
+
+    <input id="mensaje"
+        class="form-control mt-2"
+        placeholder="Mensaje">
+
+    <button class="btn btn-primary mt-2"
+        onclick="enviarMensaje()">
+
+        Enviar
+    </button>
+
+</div>
+
+</div>
+
+<!-- SOCKET -->
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
+
 const token = localStorage.getItem('token')
 
 if (!token) {
     window.location.href = '/index.html'
 }
 
+const socket = io()
+
+const payload = JSON.parse(
+    atob(token.split('.')[1])
+)
+
+socket.emit('entrar', payload.id)
+
+let receptorActual = ''
+
 history.pushState(null, null, location.href)
+
 window.onpopstate = function () {
     history.go(1)
 }
 
-// 🔥 CARGAR TEMA BIEN
+// 🔥 TEMA
 window.onload = () => {
     const theme = localStorage.getItem('theme') || 'dark'
     document.body.classList.add(theme)
 }
 
-// 🌗 CAMBIAR TEMA (CORREGIDO)
+// 🌗 CAMBIAR TEMA
 function toggleTheme() {
+
     const body = document.body
 
     if (body.classList.contains('dark')) {
+
         body.classList.replace('dark', 'light')
         localStorage.setItem('theme', 'light')
+
     } else {
+
         body.classList.replace('light', 'dark')
         localStorage.setItem('theme', 'dark')
     }
@@ -196,7 +272,8 @@ function toggleTheme() {
 
 // ☰ MENÚ
 function toggleMenu() {
-    document.querySelector('.sidebar').classList.toggle('active')
+    document.querySelector('.sidebar')
+        .classList.toggle('active')
 }
 
 // 🔄 CAMBIAR VISTA
@@ -215,8 +292,11 @@ function mostrar(tipo) {
 
 // 📚 MATERIAS
 async function cargarMaterias() {
+
     const res = await fetch('/mis-materias', {
-        headers: { Authorization: token }
+        headers: {
+            Authorization: token
+        }
     })
 
     const data = await res.json()
@@ -224,34 +304,45 @@ async function cargarMaterias() {
     let html = '<h3>Mis materias</h3>'
 
     data.forEach(m => {
-        html += `<div class="card p-3 mb-2">${m.nombre}</div>`
+
+        html += `
+        <div class="card p-3 mb-2">
+            ${m.nombre}
+        </div>
+        `
     })
 
-    document.getElementById('contenido').innerHTML = html
+    document.getElementById('contenido')
+        .innerHTML = html
 }
 
 // 👨‍🎓 ALUMNOS
 async function cargarAlumnos() {
 
     const res = await fetch('/mis-alumnos', {
-        headers: { Authorization: token }
+        headers: {
+            Authorization: token
+        }
     })
 
     const data = await res.json()
 
-    // 🔥 TRAER CALIFICACIONES
     const resCalifs = await fetch('/mis-calificaciones', {
-        headers: { Authorization: token }
+        headers: {
+            Authorization: token
+        }
     })
+
     const calificaciones = await resCalifs.json()
 
     const mapa = {}
 
-    // 🔥 AGRUPAR POR MATERIA + GRUPO
     data.forEach(a => {
+
         const key = a.materiaNombre + '-' + a.grupo
 
         if (!mapa[key]) {
+
             mapa[key] = {
                 materia: a.materiaNombre,
                 grupo: a.grupo,
@@ -264,23 +355,32 @@ async function cargarAlumnos() {
 
     let html = '<h3>Mis alumnos</h3><div class="row">'
 
-    // 🔥 RECORRER BLOQUES
     for (let key in mapa) {
+
         const bloque = mapa[key]
 
         html += `
         <div class="col-12">
+
             <div class="card p-3 mb-4 shadow">
-                <h5>📚 ${bloque.materia}</h5>
-                <small class="text-muted mb-2 d-block">Grupo ${bloque.grupo}</small>
+
+                <h5>
+                    📚 ${bloque.materia}
+                </h5>
+
+                <small class="text-muted mb-2 d-block">
+                    Grupo ${bloque.grupo}
+                </small>
 
                 <table class="table table-sm">
+
                     <thead>
                         <tr>
                             <th>Alumno</th>
                             <th>Calificación</th>
                         </tr>
                     </thead>
+
                     <tbody>
         `
 
@@ -292,55 +392,78 @@ async function cargarAlumnos() {
             )
 
             if (yaCalificado) {
+
                 html += `
                 <tr>
+
                     <td>${a.nombre}</td>
+
                     <td class="text-success">
                         ✅ ${yaCalificado.calificacion}
                     </td>
+
                 </tr>
                 `
+
             } else {
+
                 html += `
                 <tr>
+
                     <td>${a.nombre}</td>
+
                     <td>
-                        <input type="number" class="form-control form-control-sm mb-1"
+
+                        <input type="number"
+                            class="form-control form-control-sm mb-1"
                             id="cal-${a._id}-${a.materiaId}">
+
                         <button class="btn btn-primary btn-sm w-100"
                             onclick="guardarCal('${a._id}','${a.materiaId}')">
+
                             Guardar
                         </button>
+
                     </td>
+
                 </tr>
                 `
             }
-
         })
 
         html += `
                     </tbody>
                 </table>
+
             </div>
+
         </div>
         `
     }
 
     html += '</div>'
 
-    document.getElementById('contenido').innerHTML = html
+    document.getElementById('contenido')
+        .innerHTML = html
 }
 
 // 📝 TAREAS
 async function cargarTareas() {
 
     const [resMaterias, resTareas] = await Promise.all([
+
         fetch('/mis-materias', {
-            headers: { Authorization: token }
+            headers: {
+                Authorization: token
+            }
         }),
+
         fetch('/tareas', {
-            headers: { Authorization: token }
+            headers: {
+                Authorization: token
+            }
         })
+
     ])
 
     const materias = await resMaterias.json()
@@ -348,20 +471,28 @@ async function cargarTareas() {
 
     let html = `
     <div class="card p-4 mb-4 shadow">
-        <h3 class="mb-3">📝 Crear tarea</h3>
 
-        <input id="titulo" class="form-control mb-2" placeholder="Título">
+        <h3 class="mb-3">
+            📝 Crear tarea
+        </h3>
+
+        <input id="titulo"
+            class="form-control mb-2"
+            placeholder="Título">
 
         <textarea id="descripcion"
             class="form-control mb-2"
             placeholder="Descripción"></textarea>
 
-        <select id="materia" class="form-select mb-2">
-            ${materias.map(m =>
-                `<option value="${m._id}">
+        <select id="materia"
+            class="form-select mb-2">
+
+            ${materias.map(m => `
+                <option value="${m._id}">
                     ${m.nombre}
-                </option>`
-            ).join('')}
+                </option>
+            `).join('')}
+
         </select>
 
         <input id="grupo"
@@ -369,46 +500,49 @@ async function cargarTareas() {
             placeholder="Grupo">
 
         <label>Fecha límite</label>
+
         <input type="date"
             id="fecha"
             class="form-control mb-2">
 
         <label>Hora límite</label>
+
         <input type="time"
             id="hora"
             class="form-control mb-3">
 
         <button class="btn btn-primary w-100"
             onclick="crearTarea()">
+
             Crear tarea
         </button>
+
     </div>
 
-    <h3 class="mb-3">📚 Tareas creadas</h3>
+    <h3 class="mb-3">
+        📚 Tareas creadas
+    </h3>
     `
-
-    if (tareas.length === 0) {
-        html += `
-        <div class="card p-3">
-            No hay tareas aún
-        </div>
-        `
-    }
 
     tareas.forEach(t => {
 
-        const materia = materias.find(m => m._id === t.materiaId)
+        const materia = materias.find(m =>
+            m._id === t.materiaId
+        )
 
         html += `
         <div class="card p-3 mb-3 shadow">
+
             <h5>${t.titulo}</h5>
 
             <button class="btn btn-success btn-sm mt-2"
-    onclick="verEntregas('${t._id}')">
-    Ver entregas
-</button>
+                onclick="verEntregas('${t._id}')">
 
-<div id="entregas-${t._id}" class="mt-2"></div>
+                Ver entregas
+            </button>
+
+            <div id="entregas-${t._id}"
+                class="mt-2"></div>
 
             <p>${t.descripcion || ''}</p>
 
@@ -426,17 +560,20 @@ async function cargarTareas() {
                 ⏰ Límite:
                 ${t.fechaLimite} ${t.horaLimite}
             </small>
+
         </div>
         `
     })
 
-    document.getElementById('contenido').innerHTML = html
+    document.getElementById('contenido')
+        .innerHTML = html
 }
 
 // ➕ CREAR TAREA
 async function crearTarea() {
 
-    const titulo = document.getElementById('titulo').value
+    const titulo =
+        document.getElementById('titulo').value
 
     const descripcion =
         document.getElementById('descripcion').value
@@ -454,11 +591,14 @@ async function crearTarea() {
         document.getElementById('hora').value
 
     const res = await fetch('/tareas', {
+
         method: 'POST',
+
         headers: {
             'Content-Type': 'application/json',
             Authorization: token
         },
+
         body: JSON.stringify({
             titulo,
             descripcion,
@@ -476,6 +616,7 @@ async function crearTarea() {
     cargarTareas()
 }
 
+// 👀 VER ENTREGAS
 async function verEntregas(tareaId) {
 
     const res = await fetch(`/entregas/${tareaId}`, {
@@ -495,48 +636,79 @@ async function verEntregas(tareaId) {
             Nadie ha entregado 😢
         </div>
         `
+
     } else {
 
         data.forEach(e => {
 
-            html += `
-            <div class="card p-2 mb-2">
+            if (e.calificacion) {
 
-                <b>👨‍🎓 ${e.alumno}</b>
+                html += `
+                <div class="card p-2 mb-2">
 
-                <small class="d-block">
-                    📅 ${new Date(e.fechaEntrega)
-                        .toLocaleString()}
-                </small>
+                    <b>👨‍🎓 ${e.alumno}</b>
 
-                <a href="/uploads/${e.archivo}"
-                    target="_blank"
-                    class="btn btn-primary btn-sm mt-2">
-                    Ver archivo
-                </a>
+                    <small class="d-block">
+                        ✅ Ya calificado:
+                        ${e.calificacion}
+                    </small>
 
-                <div class="mt-2">
+                    <small class="d-block">
+                        💬 ${e.comentario || 'Sin comentario'}
+                    </small>
 
-    <input type="number"
-        id="cal-${e._id}"
-        class="form-control mb-2"
-        placeholder="Calificación">
+                    <a href="/uploads/${e.archivo}"
+                        target="_blank"
+                        class="btn btn-primary btn-sm mt-2">
 
-    <textarea
-        id="com-${e._id}"
-        class="form-control mb-2"
-        placeholder="Comentario"></textarea>
+                        Ver archivo
+                    </a>
 
-    <button class="btn btn-success btn-sm"
-        onclick="calificarEntrega('${e._id}')">
+                </div>
+                `
 
-        Calificar
-    </button>
+            } else {
 
-</div>
+                html += `
+                <div class="card p-2 mb-2">
 
-            </div>
-            `
+                    <b>👨‍🎓 ${e.alumno}</b>
+
+                    <small class="d-block">
+                        📅 ${new Date(e.fechaEntrega)
+                            .toLocaleString()}
+                    </small>
+
+                    <a href="/uploads/${e.archivo}"
+                        target="_blank"
+                        class="btn btn-primary btn-sm mt-2">
+
+                        Ver archivo
+                    </a>
+
+                    <div class="mt-2">
+
+                        <input type="number"
+                            id="cal-${e._id}"
+                            class="form-control mb-2"
+                            placeholder="Calificación">
+
+                        <textarea
+                            id="com-${e._id}"
+                            class="form-control mb-2"
+                            placeholder="Comentario"></textarea>
+
+                        <button class="btn btn-success btn-sm"
+                            onclick="calificarEntrega('${e._id}')">
+
+                            Calificar
+                        </button>
+
+                    </div>
+
+                </div>
+                `
+            }
         })
     }
 
@@ -544,6 +716,7 @@ async function verEntregas(tareaId) {
         .innerHTML = html
 }
 
+// ⭐ CALIFICAR ENTREGA
 async function calificarEntrega(id) {
 
     const calificacion =
@@ -553,11 +726,14 @@ async function calificarEntrega(id) {
         document.getElementById(`com-${id}`).value
 
     const res = await fetch(`/calificar-tarea/${id}`, {
+
         method: 'PUT',
+
         headers: {
             'Content-Type': 'application/json',
             Authorization: token
         },
+
         body: JSON.stringify({
             calificacion,
             comentario
@@ -572,14 +748,20 @@ async function calificarEntrega(id) {
 // 💾 GUARDAR CALIFICACIÓN
 async function guardarCal(alumnoId, materiaId) {
 
-    const cal = document.getElementById(`cal-${alumnoId}-${materiaId}`).value
+    const cal =
+        document.getElementById(
+            `cal-${alumnoId}-${materiaId}`
+        ).value
 
     await fetch('/calificaciones', {
+
         method: 'POST',
+
         headers: {
             'Content-Type': 'application/json',
             Authorization: token
         },
+
         body: JSON.stringify({
             alumnoId,
             materiaId,
@@ -588,18 +770,65 @@ async function guardarCal(alumnoId, materiaId) {
     })
 
     alert('Guardado 🔥')
+
     cargarAlumnos()
 }
 
+// 💬 CHAT
+function seleccionarChat(idUsuario) {
+    receptorActual = idUsuario
+}
+
+function enviarMensaje() {
+
+    const mensaje =
+        document.getElementById('mensaje').value
+
+    if (!receptorActual) {
+        alert('Selecciona un usuario')
+        return
+    }
+
+    socket.emit('mensaje', {
+        de: payload.id,
+        para: receptorActual,
+        mensaje
+    })
+
+    document.getElementById('mensaje').value = ''
+}
+
+socket.on('mensaje', (data) => {
+
+    document.getElementById('chat').innerHTML += `
+        <div class="mb-2">
+
+            <strong>${data.de}</strong>:
+            ${data.mensaje}
+
+        </div>
+    `
+
+    const chat =
+        document.getElementById('chat')
+
+    chat.scrollTop = chat.scrollHeight
+})
+
+// 🔐 LOGOUT
 function logout() {
+
     if (confirm('¿Seguro que quieres cerrar sesión?')) {
+
         localStorage.removeItem('token')
+
         window.location.href = '/index.html'
     }
 }
 
 // 🚀 INICIO
 mostrar('materias')
+
 </script>
 
 </body>
