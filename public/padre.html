@@ -168,19 +168,14 @@ z-index: 9999;
 </div>
 
 <div id="boleta" style="
-position: fixed;
-top: 0;
-left: 0;
-width: 800px;
-padding: 20px;
 background: white;
 color: black;
-z-index: -1;
-opacity: 0;
-pointer-events: none;
+padding: 20px;
+width: 800px;
+margin: 20px auto;
+display:none;
 ">
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 const token = localStorage.getItem('token')
@@ -355,29 +350,29 @@ async function generarBoleta() {
 
     elemento.innerHTML = html
 
-    setTimeout(() => {
+    elemento.style.display = 'block'
 
-        html2pdf()
-        .set({
-            margin: 10,
-            filename: `Boleta-${hijo.nombre}.pdf`,
-            image: {
-                type: 'jpeg',
-                quality: 1
-            },
-            html2canvas: {
-                scale: 2
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            }
-        })
-        .from(elemento)
-        .save()
+await html2pdf()
+.set({
+    margin: 10,
+    filename: `Boleta-${hijo.nombre}.pdf`,
+    image: {
+        type: 'jpeg',
+        quality: 1
+    },
+    html2canvas: {
+        scale: 2
+    },
+    jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+    }
+})
+.from(elemento)
+.save()
 
-    }, 1000)
+elemento.style.display = 'none'
 }
 
 function mostrarToast(msg) {
