@@ -335,117 +335,133 @@ async function cargarAlumnos() {
 
     const calificaciones = await resCalifs.json()
 
-let html = `
-<h3>Mis alumnos</h3>
-
-<div class="card p-3 shadow">
-
-    <h5 class="mb-3">
-        👨‍🎓 Alumnos asignados
-    </h5>
-
-    <table class="table table-sm">
-
-        <thead>
-
-            <tr>
-
-                <th>Alumno</th>
-
-                <th>Calificación</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody>
-`
+const mapa = {}
 
 data.forEach(a => {
 
-    const yaCalificado =
-        calificaciones.find(c =>
-            c.alumnoId === a._id
-        )
+    if(!mapa[a.materiaNombre]){
 
-    if (yaCalificado) {
-
-        html += `
-        <tr>
-
-            <td>
-
-    ${a.nombre}
-
-    <br>
-
-    <small class="text-muted">
-        📚 ${a.materiaNombre}
-    </small>
-
-</td>
-
-            <td class="text-success">
-
-                ✅ ${yaCalificado.calificacion}
-
-            </td>
-
-        </tr>
-        `
-
-    } else {
-
-        html += `
-        <tr>
-
-            <td>
-
-    ${a.nombre}
-
-    <br>
-
-    <small class="text-muted">
-        📚 ${a.materiaNombre}
-    </small>
-
-</td>
-
-            <td>
-
-                <input type="number"
-                    class="form-control form-control-sm mb-1"
-                    id="cal-${a._id}">
-
-                <button
-                    class="btn btn-primary btn-sm w-100"
-
-                    onclick="guardarCal(
-                        '${a._id}',
-                        '${a.materias?.[0] || ""}'
-                    )">
-
-                    Guardar
-
-                </button>
-
-            </td>
-
-        </tr>
-        `
+        mapa[a.materiaNombre] = []
     }
+
+    mapa[a.materiaNombre].push(a)
 })
 
-html += `
-        </tbody>
+let html = '<h3 class="mb-4">Mis alumnos</h3>'
 
-    </table>
+for(let materia in mapa){
 
-</div>
-`
+    html += `
 
-    document.getElementById('contenido')
-        .innerHTML = html
+    <div class="card p-3 mb-4 shadow">
+
+        <h4 class="mb-3">
+            📚 ${materia}
+        </h4>
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Alumno</th>
+
+                    <th width="250">
+                        Calificación
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+    `
+
+    mapa[materia].forEach(a => {
+
+        const yaCalificado =
+            calificaciones.find(c =>
+
+                c.alumnoId === a._id &&
+
+                c.materiaId ===
+                a.materiaId
+            )
+
+        if(yaCalificado){
+
+            html += `
+            <tr>
+
+                <td>
+                    ${a.nombre}
+                </td>
+
+                <td class="text-success fw-bold">
+
+                    ✅ ${yaCalificado.calificacion}
+
+                </td>
+
+            </tr>
+            `
+
+        } else {
+
+            html += `
+            <tr>
+
+                <td>
+                    ${a.nombre}
+                </td>
+
+                <td>
+
+                    <div class="d-flex gap-2">
+
+                        <input type="number"
+
+                            class="form-control"
+
+                            id="cal-${a._id}-${a.materiaId}"
+
+                            min="0"
+                            max="10">
+
+                        <button
+
+                            class="btn btn-primary"
+
+                            onclick="guardarCal(
+                                '${a._id}',
+                                '${a.materiaId}'
+                            )">
+
+                            Guardar
+
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+            `
+        }
+    })
+
+    html += `
+            </tbody>
+
+        </table>
+
+    </div>
+    `
+}
+
+document.getElementById('contenido')
+    .innerHTML = html
 }
 
 // 📝 TAREAS
