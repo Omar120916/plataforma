@@ -178,6 +178,7 @@ function formMaestro() {
     return `
         <h4 class="text-center mb-3">Registrar Maestro</h4>
         <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+        <input id="email" class="form-control mb-2" placeholder= "Correo Electronico">
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
         <input id="password" type="password" class="form-control mb-3" placeholder="Contraseña">
         <button class="btn btn-primary w-100" onclick="crearUsuario('maestro')">Registrar</button>
@@ -188,6 +189,7 @@ function formAlumno() {
     return `
         <h4 class="text-center mb-3">Registrar Alumno</h4>
         <input id="nombre" class="form-control mb-2" placeholder="Nombre">
+        <input id="email" class="form-control mb-2" placeholder= "Correo Electronico">
         <select id="carrera" class="form-select mb-2"></select>
         <select id="materias" class="form-select mb-2" multiple></select>
         <input id="usuario" class="form-control mb-2" placeholder="Usuario">
@@ -220,6 +222,7 @@ function formPadre() {
     return `
         <h4 class="text-center mb-3">Registrar Padre</h4>
         <input id="nombre" class="form-control mb-2">
+        <input id="email" class="form-control mb-2" placeholder= "Correo Electronico"
         <select id="alumno" class="form-select mb-2" multiple></select>
         <input id="usuario" class="form-control mb-2">
         <input id="password" type="password" class="form-control mb-3">
@@ -285,6 +288,41 @@ async function crearCarrera() {
         body: JSON.stringify({ nombre })
     })
     alert('Carrera creada 🔥')
+}
+
+async function crearUsuario(rol) {
+
+    const nombre =
+        document.getElementById('nombre').value
+
+    const email =
+        document.getElementById('email').value
+
+    const usuario =
+        document.getElementById('usuario').value
+
+    const password =
+        document.getElementById('password').value
+
+    await fetch('/registro', {
+
+        method: 'POST',
+
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: token
+        },
+
+        body: JSON.stringify({
+            nombre,
+            email,
+            usuario,
+            password,
+            rol
+        })
+    })
+
+    alert('Usuario creado 🔥')
 }
 
 async function cargarCarrerasAlumno() {
@@ -376,6 +414,7 @@ async function crearMateria() {
 async function crearAlumno() {
 
     const nombre = document.getElementById('nombre').value
+    const email = document.getElementById('email').value
     const carreraId = document.getElementById('carrera').value
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
@@ -408,6 +447,7 @@ async function crearAlumno() {
         },
         body: JSON.stringify({
             nombre,
+            email,
             usuario,
             password,
             rol: 'alumno',
@@ -482,6 +522,7 @@ async function cargarAlumnosSelect() {
 async function crearPadre() {
 
     const nombre = document.getElementById('nombre').value
+    const email = document.getElementById('email').value
     const usuario = document.getElementById('usuario').value
     const password = document.getElementById('password').value
 
@@ -496,6 +537,7 @@ async function crearPadre() {
         },
         body: JSON.stringify({
             nombre,
+            email,
             usuario,
             password,
             rol: 'padre',

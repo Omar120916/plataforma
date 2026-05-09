@@ -40,6 +40,7 @@ const Entrega = mongoose.model('Entrega', {
 
 const Usuario = mongoose.model('Usuario', {
     nombre: String,
+    email: String,
     usuario: String,
     password: String,
     rol: String,
@@ -113,12 +114,13 @@ function soloAdmin(req, res, next) {
 // =====================
 
 app.post('/registro', verificarToken, soloAdmin, async (req, res) => {
-    const { nombre, usuario, password, rol, alumnoId, alumnos } = req.body
+    const { nombre, email, usuario, password, rol, alumnoId, alumnos } = req.body
 
     const hash = await bcrypt.hash(password, 10)
 
     const nuevo = new Usuario({
         nombre,
+        email,
         usuario,
         password: hash,
         rol,
