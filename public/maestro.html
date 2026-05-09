@@ -335,113 +335,94 @@ async function cargarAlumnos() {
 
     const calificaciones = await resCalifs.json()
 
-    const mapa = {}
+let html = `
+<h3>Mis alumnos</h3>
 
-    data.forEach(a => {
+<div class="card p-3 shadow">
 
-        const key = a.materiaNombre + '-' + a.grupo
+    <h5 class="mb-3">
+        👨‍🎓 Alumnos asignados
+    </h5>
 
-        if (!mapa[key]) {
+    <table class="table table-sm">
 
-            mapa[key] = {
-                materia: a.materiaNombre,
-                grupo: a.grupo,
-                alumnos: []
-            }
-        }
+        <thead>
 
-        mapa[key].alumnos.push(a)
-    })
+            <tr>
 
-    let html = '<h3>Mis alumnos</h3><div class="row">'
+                <th>Alumno</th>
 
-    for (let key in mapa) {
+                <th>Calificación</th>
 
-        const bloque = mapa[key]
+            </tr>
+
+        </thead>
+
+        <tbody>
+`
+
+data.forEach(a => {
+
+    const yaCalificado =
+        calificaciones.find(c =>
+            c.alumnoId === a._id
+        )
+
+    if (yaCalificado) {
 
         html += `
-        <div class="col-12">
+        <tr>
 
-            <div class="card p-3 mb-4 shadow">
+            <td>${a.nombre}</td>
 
-                <h5>
-                    📚 ${bloque.materia}
-                </h5>
+            <td class="text-success">
 
-                <small class="text-muted mb-2 d-block">
-                    Grupo ${bloque.grupo}
-                </small>
+                ✅ ${yaCalificado.calificacion}
 
-                <table class="table table-sm">
+            </td>
 
-                    <thead>
-                        <tr>
-                            <th>Alumno</th>
-                            <th>Calificación</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
+        </tr>
         `
 
-        bloque.alumnos.forEach(a => {
-
-            const yaCalificado = calificaciones.find(c =>
-                c.alumnoId === a._id &&
-                c.materia === a.materiaNombre
-            )
-
-            if (yaCalificado) {
-
-                html += `
-                <tr>
-
-                    <td>${a.nombre}</td>
-
-                    <td class="text-success">
-                        ✅ ${yaCalificado.calificacion}
-                    </td>
-
-                </tr>
-                `
-
-            } else {
-
-                html += `
-                <tr>
-
-                    <td>${a.nombre}</td>
-
-                    <td>
-
-                        <input type="number"
-                            class="form-control form-control-sm mb-1"
-                            id="cal-${a._id}-${a.materiaId}">
-
-                        <button class="btn btn-primary btn-sm w-100"
-                            onclick="guardarCal('${a._id}','${a.materiaId}')">
-
-                            Guardar
-                        </button>
-
-                    </td>
-
-                </tr>
-                `
-            }
-        })
+    } else {
 
         html += `
-                    </tbody>
-                </table>
+        <tr>
 
-            </div>
+            <td>${a.nombre}</td>
 
-        </div>
+            <td>
+
+                <input type="number"
+                    class="form-control form-control-sm mb-1"
+                    id="cal-${a._id}">
+
+                <button
+                    class="btn btn-primary btn-sm w-100"
+
+                    onclick="guardarCal(
+                        '${a._id}',
+                        '${a.materias?.[0] || ""}'
+                    )">
+
+                    Guardar
+
+                </button>
+
+            </td>
+
+        </tr>
         `
     }
+})
 
-    html += '</div>'
+html += `
+        </tbody>
+
+    </table>
+
+</div>
+`
 
     document.getElementById('contenido')
         .innerHTML = html
