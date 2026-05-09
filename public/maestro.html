@@ -826,8 +826,140 @@ function logout() {
     }
 }
 
+// =====================
+// 💬 CHAT
+// =====================
+
+let receptorId = ''
+
+// 🔥 CARGAR USUARIOS
+async function cargarUsuariosChat() {
+
+    const res = await fetch('/usuarios', {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const usuarios = await res.json()
+
+    let html = `
+        <option value="">
+            Selecciona usuario
+        </option>
+    `
+
+    usuarios.forEach(u => {
+
+        if (u._id !== payload.id) {
+
+            html += `
+                <option value="${u._id}">
+                    ${u.nombre} (${u.rol})
+                </option>
+            `
+        }
+    })
+
+    document.getElementById('usuariosChat')
+        .innerHTML = html
+}
+
+// 👤 SELECCIONAR
+function seleccionarUsuario() {
+
+    receptorId =
+        document.getElementById('usuariosChat').value
+
+    cargarMensajes(receptorId)
+}
+
+// 📥 HISTORIAL
+async function cargarMensajes(usuarioId) {
+
+    const res = await fetch(`/mensajes/${usuarioId}`, {
+        headers: {
+            Authorization: token
+        }
+    })
+
+    const mensajes = await res.json()
+
+    let html = ''
+
+    mensajes.forEach(msg => {
+
+        html += `
+            <div class="mb-2">
+
+                <b>
+                    ${msg.de === payload.id
+                        ? 'Tú'
+                        : 'Ellos'}
+                    :
+                </b>
+
+                ${msg.mensaje}
+
+            </div>
+        `
+    })
+
+    document.getElementById('chat').innerHTML = html
+}
+
+// 📤 ENVIAR
+function enviarMensaje() {
+
+    const mensaje =
+        document.getElementById('mensaje').value
+
+    if (!receptorId) {
+        alert('Selecciona usuario')
+        return
+    }
+
+    if (!mensaje) return
+
+    socket.emit('mensaje', {
+        de: payload.id,
+        para: receptorId,
+        mensaje
+    })
+
+    document.getElementById('mensaje').value = ''
+}
+
+// 📥 RECIBIR
+socket.on('mensaje', (msg) => {
+
+    document.getElementById('chat').innerHTML += `
+
+        <div class="mb-2">
+
+            <b>
+                ${msg.de === payload.id
+                    ? 'Tú'
+                    : 'Ellos'}
+                :
+            </b>
+
+            ${msg.mensaje}
+
+        </div>
+    `
+
+    const chat =
+        document.getElementById('chat')
+
+    chat.scrollTop =
+        chat.scrollHeight
+})
+
 // 🚀 INICIO
 mostrar('materias')
+
+cargarUsuariosChat()
 
 </script>
 

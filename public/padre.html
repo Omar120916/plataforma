@@ -151,23 +151,36 @@ body.light .card {
     <ul class="nav nav-tabs mb-3" id="tabs"></ul>
     <div id="contenido"></div>
 
-<div class="card p-3">
+<!-- 💬 CHAT -->
+    <div class="card p-3 mt-4">
 
-    <div id="chat" style="
-        height:300px;
-        overflow:auto;
-    "></div>
+        <h5>💬 Chat</h5>
 
-    <input id="mensaje"
-        class="form-control mt-2"
-        placeholder="Mensaje">
+        <select id="usuariosChat"
+            class="form-select mb-2"
+            onchange="seleccionarUsuario()">
 
-    <button class="btn btn-primary mt-2"
-        onclick="enviarMensaje()">
-        Enviar
-    </button>
+        </select>
 
-</div>
+        <div id="chat" style="
+            height:300px;
+            overflow:auto;
+            border:1px solid #ccc;
+            border-radius:10px;
+            padding:10px;
+        "></div>
+
+        <input id="mensaje"
+            class="form-control mt-2"
+            placeholder="Mensaje">
+
+        <button class="btn btn-primary mt-2"
+            onclick="enviarMensaje()">
+
+            Enviar
+        </button>
+
+    </div>
 
 
 </div>

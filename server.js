@@ -409,7 +409,9 @@ app.get('/mi-alumno', verificarToken, async (req, res) => {
 })
 
 app.get('/usuarios', verificarToken, async (req, res) => {
-    const usuarios = await Usuario.find()
+    const usuarios = await Usuario.find().select(
+        '_id nombre rol'
+    )
     res.json(usuarios)
 })
 
