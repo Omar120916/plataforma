@@ -212,7 +212,28 @@ app.post('/materias', verificarToken, async (req, res) => {
 })
 
 app.get('/materias', verificarToken, async (req, res) => {
-    res.json(await Materia.find())
+
+    const materias = await Materia.find()
+
+    const usuarios = await Usuario.find()
+
+    const resultado = materias.map(m => {
+
+        const maestro = usuarios.find(u =>
+            u._id.toString() ===
+            m.maestroId?.toString()
+        )
+
+        return {
+
+            ...m.toObject(),
+
+            maestroNombre:
+                maestro?.nombre || 'Sin maestro'
+        }
+    })
+
+    res.json(resultado)
 })
 
 app.get('/materias-por-carrera/:id', verificarToken, async (req, res) => {
