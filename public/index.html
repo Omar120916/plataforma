@@ -361,31 +361,37 @@ async function cambiarPassword() {
         return
     }
 
-    const res = await fetch(
-        '/reset-password',
-        {
+    if(
+    codigo !== codigoGuardado ||
+    email !== emailGuardado
+){
 
-            method:'POST',
+    alert('Código incorrecto 😭')
+    return
+}
 
-            headers:{
-                'Content-Type':
-                    'application/json'
-            },
+const res = await fetch('/cambiar-password-directo', {
 
-            body:JSON.stringify({
+    method:'POST',
 
-                email,
+    headers:{
+        'Content-Type':'application/json'
+    },
 
-                codigo,
+    body:JSON.stringify({
 
-                nuevaPassword
-            })
-        }
-    )
+        email,
 
-    const data = await res.json()
+        nuevaPassword
+    })
+})
 
-    alert(data.mensaje)
+const data = await res.json()
+
+alert(data.mensaje)
+
+localStorage.removeItem('codigoReset')
+localStorage.removeItem('emailReset')
 
     localStorage.removeItem(
         'codigoReset'
