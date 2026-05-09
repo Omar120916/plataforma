@@ -725,60 +725,73 @@ app.get('/mensajes/:usuario', verificarToken, async (req, res) => {
 
 app.post('/olvide-password', async (req, res) => {
 
-    const { email } = req.body
+    try {
 
-    const usuario =
-        await Usuario.findOne({ email })
+        const { email } = req.body
 
-    if (!usuario) {
+        console.log('EMAIL:', email)
 
-        return res.status(404).json({
-            mensaje: 'Correo no encontrado'
+        const usuario =
+            await Usuario.findOne({ email })
+
+        if (!usuario) {
+
+            return res.status(404).json({
+                mensaje: 'Correo no encontrado'
+            })
+        }
+
+        const codigo =
+            Math.floor(
+                100000 + Math.random() * 900000
+            ).toString()
+
+        await CodigoReset.deleteMany({ email })
+
+        await CodigoReset.create({
+
+            email,
+
+            codigo,
+
+            expira:
+                new Date(Date.now() + 10 * 60000)
+        })
+
+        console.log('Código generado:', codigo)
+
+        await transporter.sendMail({
+
+            from: 'TU_CORREO@gmail.com',
+
+            to: email,
+
+            subject: 'Recuperar contraseña',
+
+            html: `
+                <h2>
+                    Código recuperación
+                </h2>
+
+                <h1>${codigo}</h1>
+            `
+        })
+
+        console.log('Correo enviado 🔥')
+
+        res.json({
+            mensaje: 'Código enviado 🔥'
+        })
+
+    } catch(err) {
+
+        console.log('ERROR RESET:')
+        console.log(err)
+
+        res.status(500).json({
+            mensaje: 'Error servidor 😭'
         })
     }
-
-    const codigo =
-        Math.floor(
-            100000 + Math.random() * 900000
-        ).toString()
-
-    await CodigoReset.deleteMany({ email })
-
-    await CodigoReset.create({
-
-        email,
-
-        codigo,
-
-        expira:
-            new Date(Date.now() + 10 * 60000)
-    })
-
-    await transporter.sendMail({
-
-        from: 'TU_CORREO@gmail.com',
-
-        to: email,
-
-        subject: 'Recuperar contraseña',
-
-        html: `
-
-            <h2>
-                Código de recuperación
-            </h2>
-
-            <h1>${codigo}</h1>
-
-            <p>
-                Expira en 10 minutos
-            </p>
-        `
-    })
-
-    res.json({
-        mensaje: 'Código enviado 🔥'
-    })
 })
 
 app.post('/reset-password', async (req, res) => {
