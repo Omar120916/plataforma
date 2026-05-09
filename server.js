@@ -65,11 +65,22 @@ const Materia = mongoose.model('Materia', {
     carreraId: mongoose.Schema.Types.ObjectId
 })
 
+const Grupo = mongoose.model('Grupo', {
+
+    nombre: String,
+
+    materiaId:
+        mongoose.Schema.Types.ObjectId,
+
+    maestroId:
+        mongoose.Schema.Types.ObjectId
+})
+
 const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
     carreraId: mongoose.Schema.Types.ObjectId,
-    grupo: String,
+    grupos: [mongoose.Schema.Types.ObjectId],
     materias: [mongoose.Schema.Types.ObjectId]
 })
 
@@ -221,7 +232,7 @@ app.post('/alumnos', verificarToken, async (req, res) => {
         nombre: req.body.nombre,
         edad: req.body.edad,
         carreraId: req.body.carreraId,
-        grupo: req.body.grupo, // 🔥 AQUÍ
+        grupo: req.body.grupos || [], // 🔥 AQUÍ
         materias
     })
 
@@ -256,28 +267,22 @@ app.get('/mis-materias', verificarToken, async (req, res) => {
 
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const id = new mongoose.Types.ObjectId(req.usuario.id)
-    const materias = await Materia.find({ maestroId: id })
+    const grupos =
+        await Grupo.find({
 
-    let resultado = []
-
-    for (let materia of materias) {
-        const alumnos = await Alumno.find({
-            materias: materia._id
+            maestroId:
+                req.usuario.id
         })
 
-        alumnos.forEach(a => {
-            resultado.push({
-                _id: a._id,
-                nombre: a.nombre,
-                grupo: a.grupo, // 🔥 ESTA LÍNEA ES LA CLAVE
-                materiaId: materia._id,
-                materiaNombre: materia.nombre
-            })
-        })
-    }
+    const alumnos =
+        await Alumno.find({
 
-    res.json(resultado)
+            grupos: {
+                $in: grupos.map(g => g._id)
+            }
+        })
+
+    res.json(alumnos)
 })
 
 app.post('/tareas', verificarToken, async (req, res) => {
@@ -788,6 +793,33 @@ console.log(enviado)
             mensaje: 'Error servidor 😭'
         })
     }
+})
+
+app.post('/grupos', verificarToken, async (req, res) => {
+
+    const nuevo = new Grupo({
+
+        nombre:
+            req.body.nombre,
+
+        materiaId:
+            req.body.materiaId,
+
+        maestroId:
+            req.body.maestroId
+    })
+
+    await nuevo.save()
+
+    res.json(nuevo)
+})
+
+app.get('/grupos', verificarToken, async (req, res) => {
+
+    const grupos =
+        await Grupo.find()
+
+    res.json(grupos)
 })
 
 app.post('/cambiar-password-directo', async (req, res) => {
