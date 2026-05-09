@@ -302,15 +302,33 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
     let resultado = []
 
-    for(let alumno of alumnos){
+    alumnos.forEach(alumno => {
 
-        resultado.push({
+        materias.forEach(materia => {
 
-            _id: alumno._id,
+            const tieneMateria =
+                alumno.materias.some(m =>
+                    m.toString() ===
+                    materia._id.toString()
+                )
 
-            nombre: alumno.nombre
+            if(tieneMateria){
+
+                resultado.push({
+
+                    _id: alumno._id,
+
+                    nombre: alumno.nombre,
+
+                    materiaId:
+                        materia._id,
+
+                    materiaNombre:
+                        materia.nombre
+                })
+            }
         })
-    }
+    })
 
     res.json(resultado)
 })
