@@ -288,22 +288,31 @@ app.get('/mis-materias', verificarToken, async (req, res) => {
 
 app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
-    const grupos =
-        await Grupo.find({
+    const materias = await Materia.find({
 
-            maestroId:
-                req.usuario.id
+        maestroId: req.usuario.id
+    })
+
+    const alumnos = await Alumno.find({
+
+        materias: {
+            $in: materias.map(m => m._id)
+        }
+    })
+
+    let resultado = []
+
+    for(let alumno of alumnos){
+
+        resultado.push({
+
+            _id: alumno._id,
+
+            nombre: alumno.nombre
         })
+    }
 
-    const alumnos =
-        await Alumno.find({
-
-            grupos: {
-                $in: grupos.map(g => g._id)
-            }
-        })
-
-    res.json(alumnos)
+    res.json(resultado)
 })
 
 app.post('/tareas', verificarToken, async (req, res) => {
