@@ -790,6 +790,33 @@ console.log(enviado)
     }
 })
 
+app.post('/cambiar-password-directo', async (req, res) => {
+
+    const {
+        email,
+        nuevaPassword
+    } = req.body
+
+    const hash =
+        await bcrypt.hash(
+            nuevaPassword,
+            10
+        )
+
+    await Usuario.updateOne(
+
+        { email },
+
+        {
+            password: hash
+        }
+    )
+
+    res.json({
+        mensaje:'Contraseña actualizada 🔥'
+    })
+})
+
 app.post('/reset-password', async (req, res) => {
 
     const {
