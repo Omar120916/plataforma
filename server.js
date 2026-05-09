@@ -2,8 +2,10 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const nodemailer = require('nodemailer')
 const http = require('http')
 const { Server } = require('socket.io')
+
 
 const app = express()
 
@@ -15,6 +17,16 @@ app.use('/uploads', express.static('uploads'))
 mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuela')
     .then(() => console.log('Mongo conectado 🔥'))
     .catch(err => console.log(err))
+
+const transporter = nodemailer.createTransport({
+
+    service: 'gmail',
+
+    auth: {
+        user: 'TU_CORREO@gmail.com',
+        pass: 'TU_APP_PASSWORD'
+    }
+})
 
 // =====================
 // 📦 MODELOS
@@ -83,6 +95,14 @@ const Mensaje = mongoose.model('Mensaje', {
     }
 })
 
+const CodigoReset = mongoose.model('CodigoReset', {
+
+    email: String,
+
+    codigo: String,
+
+    expira: Date
+})
 
 
 // =====================
@@ -697,6 +717,113 @@ app.get('/mensajes/:usuario', verificarToken, async (req, res) => {
     }).sort({ fecha: 1 })
 
     res.json(mensajes)
+})
+
+// =====================
+// 🔐 RECUPERAR PASSWORD
+// =====================
+
+app.post('/olvide-password', async (req, res) => {
+
+    const { email } = req.body
+
+    const usuario =
+        await Usuario.findOne({ email })
+
+    if (!usuario) {
+
+        return res.status(404).json({
+            mensaje: 'Correo no encontrado'
+        })
+    }
+
+    const codigo =
+        Math.floor(
+            100000 + Math.random() * 900000
+        ).toString()
+
+    await CodigoReset.deleteMany({ email })
+
+    await CodigoReset.create({
+
+        email,
+
+        codigo,
+
+        expira:
+            new Date(Date.now() + 10 * 60000)
+    })
+
+    await transporter.sendMail({
+
+        from: 'TU_CORREO@gmail.com',
+
+        to: email,
+
+        subject: 'Recuperar contraseña',
+
+        html: `
+
+            <h2>
+                Código de recuperación
+            </h2>
+
+            <h1>${codigo}</h1>
+
+            <p>
+                Expira en 10 minutos
+            </p>
+        `
+    })
+
+    res.json({
+        mensaje: 'Código enviado 🔥'
+    })
+})
+
+app.post('/reset-password', async (req, res) => {
+
+    const {
+        email,
+        codigo,
+        nuevaPassword
+    } = req.body
+
+    const existe =
+        await CodigoReset.findOne({
+            email,
+            codigo
+        })
+
+    if (!existe) {
+
+        return res.status(400).json({
+            mensaje: 'Código inválido'
+        })
+    }
+
+    if (new Date() > existe.expira) {
+
+        return res.status(400).json({
+            mensaje: 'Código expirado'
+        })
+    }
+
+    const hash =
+        await bcrypt.hash(nuevaPassword, 10)
+
+    await Usuario.updateOne(
+        { email },
+        {
+            password: hash
+        }
+    )
+
+    await CodigoReset.deleteMany({ email })
+
+    res.json({
+        mensaje: 'Contraseña actualizada 🔥'
+    })
 })
 
 
