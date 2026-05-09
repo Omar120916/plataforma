@@ -2,7 +2,11 @@ const express = require('express')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const nodemailer = require('nodemailer')
+const { Resend } = require('resend')
+
+const resend = new Resend(
+    're_QaZ1bsbN_NjSgvXZQuzCJHx22Utj1LZb3'
+)
 const http = require('http')
 const { Server } = require('socket.io')
 
@@ -18,26 +22,6 @@ mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuel
     .then(() => console.log('Mongo conectado 🔥'))
     .catch(err => console.log(err))
 
-const transporter = nodemailer.createTransport({
-
-    host: 'smtp.gmail.com',
-
-    port: 587,
-
-    secure: true,
-
-    requireTLS: true,
-
-
-    auth: {
-        user: 'cepmsoporte@gmail.com',
-        pass: 'highfoheflxrvrtj'
-    },
-
-    tls: {
-        rejectUnauthorized: false
-    }
-})
 
 // =====================
 // 📦 MODELOS
@@ -771,22 +755,21 @@ app.post('/olvide-password', async (req, res) => {
 
         console.log('Código generado:', codigo)
 
-        await transporter.sendMail({
+        await resend.emails.send({
 
-            from: 'TU_CORREO@gmail.com',
+    from: 'onboarding@resend.dev',
 
-            to: email,
+    to: email,
 
-            subject: 'Recuperar contraseña',
+    subject: 'Recuperar contraseña',
 
-            html: `
-                <h2>
-                    Código recuperación
-                </h2>
-
-                <h1>${codigo}</h1>
-            `
-        })
+    html: `
+        <h1>
+            Código:
+            ${codigo}
+        </h1>
+    `
+})
 
         console.log('Correo enviado 🔥')
 
