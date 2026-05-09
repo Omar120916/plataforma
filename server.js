@@ -75,6 +75,7 @@ const Mensaje = mongoose.model('Mensaje', {
     de: String,
     para: String,
     mensaje: String,
+    nombre: String,
     fecha: {
         type: Date,
         default: Date.now
@@ -720,11 +721,14 @@ io.on('connection', (socket) => {
 
     socket.on('mensaje', async (data) => {
 
-        const nuevo = new Mensaje({
-            de: data.de,
-            para: data.para,
-            mensaje: data.mensaje
-        })
+        const usuario = await Usuario.findById(data.de)
+
+const nuevo = new Mensaje({
+    de: data.de,
+    para: data.para,
+    mensaje: data.mensaje,
+    nombre: usuario?.nombre || 'Usuario'
+})
 
         await nuevo.save()
 

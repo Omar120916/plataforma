@@ -938,9 +938,11 @@ socket.on('mensaje', (msg) => {
         <div class="mb-2">
 
             <b>
-                ${msg.de === payload.id
+                ${
+                    msg.de === payload.id
                     ? 'Tú'
-                    : 'Ellos'}
+                    : msg.nombre ||'Usuario'
+                }
                 :
             </b>
 
