@@ -755,9 +755,9 @@ app.post('/olvide-password', async (req, res) => {
 
         console.log('Código generado:', codigo)
 
-        await resend.emails.send({
+        const enviado = await resend.emails.send({
 
-    from: 'onboarding@resend.dev',
+    from: 'CEPM <onboarding@resend.dev>',
 
     to: email,
 
@@ -770,6 +770,8 @@ app.post('/olvide-password', async (req, res) => {
         </h1>
     `
 })
+
+console.log(enviado)
 
         console.log('Correo enviado 🔥')
 
