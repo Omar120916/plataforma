@@ -759,7 +759,7 @@ app.post('/olvide-password', async (req, res) => {
 
     from: 'CEPM <onboarding@resend.dev>',
 
-    to: email,
+    to: 'cepmsoporte@gmail.com',
 
     subject: 'Recuperar contraseña',
 
