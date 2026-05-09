@@ -20,11 +20,22 @@ mongoose.connect('mongodb+srv://admin:120916@cluster0.uztomh4.mongodb.net/escuel
 
 const transporter = nodemailer.createTransport({
 
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+
+    port: 587,
+
+    secure: true,
+
+    requireTLS: true,
+
 
     auth: {
         user: 'cepmsoporte@gmail.com',
         pass: 'highfoheflxrvrtj'
+    },
+
+    tls: {
+        rejectUnauthorized: false
     }
 })
 
