@@ -659,6 +659,35 @@ mostrar('inicio')
 
 cargarUsuariosChat()
 </script>
+<script>
+
+if('serviceWorker' in navigator){
+
+    navigator.serviceWorker.register('/sw.js')
+}
+
+</script>
+
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+<script>
+
+window.OneSignalDeferred =
+window.OneSignalDeferred || [];
+
+OneSignalDeferred.push(async function(OneSignal) {
+
+    await OneSignal.init({
+
+        appId: "afbe2ea5-d2f8-4c26-aa38-6a478b2d4205"
+
+    });
+
+});
+
+</script>
 
 </body>
+
+
 </html>
