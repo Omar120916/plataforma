@@ -1002,35 +1002,40 @@ OneSignalDeferred.push(async function(OneSignal) {
 
     await OneSignal.init({
 
-        appId: "afbe2ea5-d2f8-4c26-aa38-6a478b2d4205"
+        appId:
+        "afbe2ea5-d2f8-4c26-aa38-6a478b2d4205"
 
     });
 
-});
+    await OneSignal.Notifications.requestPermission()
 
-const id =
-    await OneSignal.User.PushSubscription.id
+    const id =
+        OneSignal.User.PushSubscription.id
 
-if(id){
+    console.log('ONESIGNAL ID:', id)
 
-    fetch('/guardar-onesignal', {
+    if(id){
 
-        method:'POST',
+        fetch('/guardar-onesignal', {
 
-        headers:{
-            'Content-Type':
-                'application/json',
+            method:'POST',
 
-            Authorization:
-                localStorage.getItem('token')
-        },
+            headers:{
+                'Content-Type':
+                    'application/json',
 
-        body:JSON.stringify({
+                Authorization:
+                    localStorage.getItem('token')
+            },
 
-            onesignalId:id
+            body:JSON.stringify({
+
+                onesignalId:id
+            })
         })
-    })
-}
+    }
+
+});
 
 </script>
 
