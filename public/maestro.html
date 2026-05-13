@@ -1008,6 +1008,30 @@ OneSignalDeferred.push(async function(OneSignal) {
 
 });
 
+const id =
+    await OneSignal.User.PushSubscription.id
+
+if(id){
+
+    fetch('/guardar-onesignal', {
+
+        method:'POST',
+
+        headers:{
+            'Content-Type':
+                'application/json',
+
+            Authorization:
+                localStorage.getItem('token')
+        },
+
+        body:JSON.stringify({
+
+            onesignalId:id
+        })
+    })
+}
+
 </script>
 
 </body>

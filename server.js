@@ -52,7 +52,8 @@ const Usuario = mongoose.model('Usuario', {
     password: String,
     rol: String,
     alumnoId: mongoose.Schema.Types.ObjectId,
-    alumnos: [mongoose.Schema.Types.ObjectId]
+    alumnos: [mongoose.Schema.Types.ObjectId],
+    onesignalId: String
 })
 
 const Carrera = mongoose.model('Carrera', {
@@ -109,6 +110,7 @@ const CodigoReset = mongoose.model('CodigoReset', {
 
     expira: Date
 })
+
 
 
 // =====================
@@ -180,6 +182,23 @@ app.post('/login', async (req, res) => {
 }, 'secreto123')
 
     res.json({ token })
+})
+
+app.post('/guardar-onesignal', verificarToken, async (req, res) => {
+
+    await Usuario.findByIdAndUpdate(
+
+        req.usuario.id,
+
+        {
+            onesignalId:
+                req.body.onesignalId
+        }
+    )
+
+    res.json({
+        mensaje: 'OneSignal guardado 🔥'
+    })
 })
 
 // =====================
