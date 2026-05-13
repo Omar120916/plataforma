@@ -393,20 +393,26 @@ app.get('/tareas', verificarToken, async (req, res) => {
 
 app.get('/mis-tareas', verificarToken, async (req, res) => {
 
-    if (!req.usuario.alumnoId) return res.json([])
+    if (!req.usuario.alumnoId)
+        return res.json([])
 
-    const alumno = await Alumno.findById(req.usuario.alumnoId)
+    const alumno =
+        await Alumno.findById(
+            req.usuario.alumnoId
+        )
 
-    if (!alumno) return res.json([])
+    if (!alumno)
+        return res.json([])
 
     const tareas = await Tarea.find({
-        grupo: alumno.grupo,
-        materiaId: { $in: alumno.materias }
+
+        materiaId: {
+            $in: alumno.materias
+        }
     })
 
     res.json(tareas)
 })
-
 // =====================
 // 📝 CALIFICACIONES
 // =====================
