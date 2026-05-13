@@ -371,6 +371,78 @@ app.post('/tareas', verificarToken, async (req, res) => {
 
     await nueva.save()
 
+    const alumnos = await Alumno.find({
+
+    materias: materiaId
+})
+
+const alumnosIds =
+    alumnos.map(a => a._id)
+
+const usuarios = await Usuario.find({
+
+    $or:[
+
+        {
+            alumnoId:{
+                $in: alumnosIds
+            }
+        },
+
+        {
+            alumnos:{
+                $in: alumnosIds
+            }
+        }
+    ]
+})
+
+const ids = usuarios
+
+    .map(u => u.onesignalId)
+
+    .filter(Boolean)
+
+if(ids.length > 0){
+
+    await fetch(
+
+        'https://onesignal.com/api/v1/notifications',
+
+        {
+
+            method:'POST',
+
+            headers:{
+
+                'Content-Type':
+                    'application/json',
+
+                Authorization:
+                    'os_v2_app_v67c5jos7bgcnkrynjdywlkcavmoy4baazju7peu3qnjsrb2mwtwhhpbuhktlmp2kpykh4xc3nruwkxlvxkzuichitdumjjhhweuwai'
+            },
+
+            body:JSON.stringify({
+
+                app_id:
+                'afbe2ea5-d2f8-4c26-aa38-6a478b2d4205',
+
+                include_subscription_ids:
+                    ids,
+
+                headings:{
+                    en:'Nueva tarea 📚'
+                },
+
+                contents:{
+                    en:
+                    `Nueva tarea: ${titulo}`
+                }
+            })
+        }
+    )
+}
+
     res.json(nueva)
 })
 
