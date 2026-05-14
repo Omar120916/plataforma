@@ -419,7 +419,7 @@ if(ids.length > 0){
                     'application/json',
 
                 Authorization:
-                    'os_v2_app_v67c5jos7bgcnkrynjdywlkcavmoy4baazju7peu3qnjsrb2mwtwhhpbuhktlmp2kpykh4xc3nruwkxlvxkzuichitdumjjhhweuwai'
+                    'Basic os_v2_app_v67c5jos7bgcnkrynjdywlkcavmoy4baazju7peu3qnjsrb2mwtwhhpbuhktlmp2kpykh4xc3nruwkxlvxkzuichitdumjjhhweuwai'
             },
 
             body:JSON.stringify({
