@@ -654,11 +654,17 @@ for (let alumno of alumnos) {
 
     // 🔥 TAREAS DEL GRUPO
     const tareasAlumno = tareas.filter(t =>
-        t.grupo === alumno.grupo &&
-        alumno.materias.some(m =>
-            m.toString() === t.materiaId.toString()
-        )
+
+    alumno.grupos?.includes(t.grupo)
+
+    &&
+
+    alumno.materias.some(m =>
+
+        m.toString() ===
+        t.materiaId.toString()
     )
+)
 
     for (let tarea of tareasAlumno) {
 
