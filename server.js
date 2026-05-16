@@ -721,6 +721,15 @@ for (let alumno of alumnos) {
     }
 }
 
+
+console.log('ALUMNOS:')
+console.log(alumnos)
+
+console.log('TAREAS:')
+console.log(tareas)
+
+console.log('ALERTAS:')
+console.log(alertas)
     res.json(alertas)
 })
 
