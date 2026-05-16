@@ -655,7 +655,7 @@ for (let alumno of alumnos) {
     // 🔥 TAREAS DEL GRUPO
     const tareasAlumno = tareas.filter(t =>
 
-    alumno.grupos?.includes(t.grupo)
+    alumno.grupo === t.grupo
 
     &&
 
