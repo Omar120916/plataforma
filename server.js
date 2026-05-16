@@ -81,7 +81,7 @@ const Alumno = mongoose.model('Alumno', {
     nombre: String,
     edad: String,
     carreraId: mongoose.Schema.Types.ObjectId,
-    grupos: [mongoose.Schema.Types.ObjectId],
+    grupo: String,
     materias: [mongoose.Schema.Types.ObjectId]
 })
 
@@ -272,7 +272,7 @@ app.post('/alumnos', verificarToken, async (req, res) => {
         nombre: req.body.nombre,
         edad: req.body.edad,
         carreraId: req.body.carreraId,
-        grupo: req.body.grupos || [], // 🔥 AQUÍ
+        grupo: req.body.grupos, // 🔥 AQUÍ
         materias
     })
 
