@@ -78,11 +78,17 @@ const Grupo = mongoose.model('Grupo', {
 })
 
 const Alumno = mongoose.model('Alumno', {
+
     nombre: String,
     edad: String,
-    carreraId: mongoose.Schema.Types.ObjectId,
+
+    carreraId:
+        mongoose.Schema.Types.ObjectId,
+
     grupo: String,
-    materias: [mongoose.Schema.Types.ObjectId]
+
+    materias:
+        [mongoose.Schema.Types.ObjectId]
 })
 
 const Calificacion = mongoose.model('Calificacion', {
@@ -266,17 +272,27 @@ app.get('/materias-por-carrera/:id', verificarToken, async (req, res) => {
 
 app.post('/alumnos', verificarToken, async (req, res) => {
 
-    const materias = (req.body.materias || []).map(id => new mongoose.Types.ObjectId(id))
+    const materias =
+        (req.body.materias || [])
+        .map(id =>
+            new mongoose.Types.ObjectId(id)
+        )
 
     const nuevo = new Alumno({
+
         nombre: req.body.nombre,
+
         edad: req.body.edad,
+
         carreraId: req.body.carreraId,
-        grupo: req.body.grupos, // 🔥 AQUÍ
+
+        grupo: req.body.grupo,
+
         materias
     })
 
     await nuevo.save()
+
     res.json(nuevo)
 })
 
@@ -314,11 +330,10 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
 
     const alumnos = await Alumno.find({
 
-        materias: {
-            $in: materias.map(m => m._id)
-        }
-    })
+    materias: materiaId,
 
+    grupo: grupo
+})
     let resultado = []
 
     alumnos.forEach(alumno => {
@@ -480,7 +495,10 @@ app.get('/mis-tareas', verificarToken, async (req, res) => {
 
         materiaId: {
             $in: alumno.materias
-        }
+        },
+
+        grupo:
+            alumno.grupo
     })
 
     res.json(tareas)
@@ -557,21 +575,34 @@ app.get('/mis-calificaciones', verificarToken, async (req, res) => {
 app.get('/mi-alumno', verificarToken, async (req, res) => {
 
     if (!req.usuario.alumnoId) {
-        return res.status(400).json({ mensaje: 'No tiene alumno asignado' })
+
+        return res.status(400).json({
+            mensaje:'No tiene alumno asignado'
+        })
     }
 
-    const alumno = await Alumno.findById(req.usuario.alumnoId)
+    const alumno = await Alumno.findById(
+        req.usuario.alumnoId
+    )
 
     if (!alumno) {
-        return res.status(404).json({ mensaje: 'Alumno eliminado o inválido' })
+
+        return res.status(404).json({
+            mensaje:'Alumno no encontrado'
+        })
     }
 
     const materias = await Materia.find({
-        _id: { $in: alumno.materias }
+
+        _id: {
+            $in: alumno.materias
+        }
     })
 
     res.json({
+
         ...alumno.toObject(),
+
         materias
     })
 })
@@ -653,18 +684,20 @@ const entregas = await Entrega.find({
 for (let alumno of alumnos) {
 
     // 🔥 TAREAS DEL GRUPO
-    const tareasAlumno = tareas.filter(t =>
+const tareasAlumno = tareas.filter(t =>
 
     alumno.grupo?.trim().toLowerCase()
+
     ===
+
     t.grupo?.trim().toLowerCase()
 
     &&
 
     alumno.materias.some(m =>
 
-        m.toString() ===
-        t.materiaId.toString()
+        String(m) ===
+        String(t.materiaId)
     )
 )
 
