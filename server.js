@@ -328,11 +328,11 @@ app.get('/mis-alumnos', verificarToken, async (req, res) => {
         maestroId: req.usuario.id
     })
 
-    const alumnos = await Alumno.find({
+const alumnos = await Alumno.find({
 
-    materias: materiaId,
-
-    grupo: grupo
+    materias: {
+        $in: materias.map(m => m._id)
+    }
 })
     let resultado = []
 
@@ -388,7 +388,8 @@ app.post('/tareas', verificarToken, async (req, res) => {
 
     const alumnos = await Alumno.find({
 
-    materias: materiaId
+    materias: materiaId,
+    grupo: grupo
 })
 
 const alumnosIds =
