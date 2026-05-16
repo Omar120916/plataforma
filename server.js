@@ -655,7 +655,9 @@ for (let alumno of alumnos) {
     // 🔥 TAREAS DEL GRUPO
     const tareasAlumno = tareas.filter(t =>
 
-    alumno.grupo === t.grupo
+    alumno.grupo?.trim().toLowerCase()
+    ===
+    t.grupo?.trim().toLowerCase()
 
     &&
 
